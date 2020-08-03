@@ -126,6 +126,8 @@ public class VirtusBot {
         commands.add(new QueueCommand(audioManager, bot));
         commands.add(new CurrentPlayingCommand(audioManager));
         commands.add(new VolumeCommand(audioManager));
+        commands.add(new ShuffleCommand(audioManager));
+        commands.add(new RepeatCommand(audioManager));
 
         // player
         commands.add(new LevelCommand(playerLeveling));

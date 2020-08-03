@@ -57,12 +57,16 @@ public class PlayerLeveling {
         userUpdater();
     }
 
+
     Runnable updatingTask = () -> {
         try {
             syncUsers();
         }catch (Exception ignored){}
     };
 
+    /**
+     * Runs Sync function every 1 minute.
+     */
     public void userUpdater(){
         Timer t = new Timer();
         t.scheduleAtFixedRate(new TimerTask() {
@@ -75,6 +79,11 @@ public class PlayerLeveling {
         }, 100, 60000);
     }
 
+    /**
+     * Syncs HashMap of users to SQL.
+     *
+     * @throws SQLException if there is issue with SQL connection.
+     */
 
     public void syncUsers() throws SQLException{
         HashMap<String, PlayerData> data = new HashMap<>(users);
@@ -102,6 +111,12 @@ public class PlayerLeveling {
         }
     }
 
+    /**
+     * Caches all users into HashMap for fast access.
+     *
+     * @throws SQLException if theres issue with SQL connection
+     */
+
     public void cacheUsers() throws SQLException{
         try(Connection connection = sql.getConnection()){
             String statement = "SELECT * from " + tableName + ";";
@@ -124,7 +139,12 @@ public class PlayerLeveling {
         }
     }
 
-
+    /**
+     *
+     * @param user - User of which data to get.
+     * @param guild - Guild from which to get data.
+     * @return PlayerData.class
+     */
 
     public PlayerData getUser(User user, Guild guild){
         String info = user.getId() + ":" + guild.getId();

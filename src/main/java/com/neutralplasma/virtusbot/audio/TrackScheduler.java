@@ -10,6 +10,9 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -21,12 +24,14 @@ public class TrackScheduler extends AudioEventAdapter {
     private final AudioPlayer player;
     private final BlockingQueue<AudioTrack> queue;
     private TextChannel channel;
+    private boolean repeating;
 
     /**
      * @param player The audio player this scheduler uses
      */
     public TrackScheduler(AudioPlayer player) {
         this.player = player;
+        this.repeating = false;
         this.queue = new LinkedBlockingQueue<>();
     }
 
@@ -52,6 +57,17 @@ public class TrackScheduler extends AudioEventAdapter {
         return this.queue;
     }
 
+
+    /*
+        Shuffles current queue.
+     */
+    public void shuffle(){
+        ArrayList<AudioTrack> tracks = new ArrayList<>(queue);
+        Collections.shuffle(tracks);
+        this.queue.clear();
+        this.queue.addAll(tracks);
+    }
+
     /**
      * Start the next track, stopping the current one if it is playing.
      */
@@ -59,8 +75,6 @@ public class TrackScheduler extends AudioEventAdapter {
         // Start the next track, regardless of if something is already playing or not. In case queue was empty, we are
         // giving null to startTrack, which is a valid argument and will simply stop the player.
         player.startTrack(queue.poll(), false);
-
-
     }
 
     public void clearQueue(){
@@ -68,11 +82,25 @@ public class TrackScheduler extends AudioEventAdapter {
         player.stopTrack();
     }
 
+    public boolean toggleRepeat(){
+        if(this.repeating){
+            this.repeating = false;
+            return false;
+        }else{
+            this.repeating = true;
+            return true;
+        }
+    }
+
     @Override
     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
         // Only start the next track if the end reason is suitable for it (FINISHED or LOAD_FAILED)
         if (endReason.mayStartNext) {
-            nextTrack();
+            if(repeating){
+                player.startTrack(track.makeClone(), false);
+            }else {
+                nextTrack();
+            }
         }
     }
 

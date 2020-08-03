@@ -92,6 +92,17 @@ public class AudioManager extends ListenerAdapter {
         return queueList;
     }
 
+
+    public void shuffle(Guild guild){
+        GuildMusicManager musicManager = getGuildAudioPlayer(guild);
+        musicManager.scheduler.shuffle();
+    }
+
+    public boolean repeat(Guild guild){
+        GuildMusicManager musicManager = getGuildAudioPlayer(guild);
+        return musicManager.scheduler.toggleRepeat();
+    }
+
     public void loadAndPlay(final TextChannel channel, final String trackUrl, final VoiceChannel voiceChannel) {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         musicManager.scheduler.setChannel(channel);
@@ -114,7 +125,7 @@ public class AudioManager extends ListenerAdapter {
             public void playlistLoaded(AudioPlaylist playlist) {
                 EmbedBuilder eb = new EmbedBuilder();
 
-                int maxsize = 50;
+                int maxsize = 200;
                 int currentsize = 0;
                 StringBuilder builder = new StringBuilder();
                 for(AudioTrack track : playlist.getTracks()){
@@ -168,7 +179,6 @@ public class AudioManager extends ListenerAdapter {
 
     public void play(Guild guild, GuildMusicManager musicManager, AudioTrack track, VoiceChannel voiceChannel) {
         connectToFirstVoiceChannel(guild.getAudioManager(), voiceChannel);
-
         musicManager.scheduler.queue(track);
     }
 
