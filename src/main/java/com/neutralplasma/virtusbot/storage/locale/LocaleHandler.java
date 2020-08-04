@@ -1,10 +1,10 @@
-package com.neutralplasma.virtusbot.storage;
+package com.neutralplasma.virtusbot.storage.locale;
 
 import com.google.gson.Gson;
 import com.neutralplasma.virtusbot.Bot;
 import com.neutralplasma.virtusbot.settings.NewSettingsManager;
-import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
+import com.neutralplasma.virtusbot.storage.locale.LocaleData;
 import com.neutralplasma.virtusbot.utils.TextUtil;
 import net.dv8tion.jda.api.entities.Guild;
 
@@ -76,7 +76,7 @@ public class LocaleHandler {
         defaultValues.put("TICKET_DELETE_FIELD_TITLE", "Delete");
         defaultValues.put("TICKET_DELETE_MESSAGE", "`Are you sure you want to delete this ticket?`");
         defaultValues.put("SUGGEST_TITLE", "Suggestion");
-        defaultValues.put("SUGGEST_FIELD_TITLE", "User suggestion:");
+        defaultValues.put("SUGGEST_FIEL D_TITLE", "User suggestion:");
         defaultValues.put("SUGGEST_TITLE_OWNER", "Suggested by:");
     }
     public HashMap<String, String> getDefaultLocales(){
@@ -108,7 +108,6 @@ public class LocaleHandler {
         }catch (SQLException error){
             TextUtil.sendMessage("Could not update guild locales");
         }
-
     }
 
     /*

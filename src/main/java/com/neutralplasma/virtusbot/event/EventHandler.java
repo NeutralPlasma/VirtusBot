@@ -4,9 +4,9 @@ import com.neutralplasma.virtusbot.commands.ticket.CreateTicketCMD;
 import com.neutralplasma.virtusbot.commands.ticket.DeleteTicketCMD;
 import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling;
 import com.neutralplasma.virtusbot.settings.NewSettingsManager;
-import com.neutralplasma.virtusbot.storage.LocaleHandler;
-import com.neutralplasma.virtusbot.storage.TicketInfo;
-import com.neutralplasma.virtusbot.storage.TicketStorage;
+import com.neutralplasma.virtusbot.storage.locale.LocaleHandler;
+import com.neutralplasma.virtusbot.storage.ticket.TicketInfo;
+import com.neutralplasma.virtusbot.storage.ticket.TicketStorage;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -17,8 +17,6 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 public class EventHandler implements EventListener {
     private NewSettingsManager newSettingsManager;
@@ -58,13 +56,6 @@ public class EventHandler implements EventListener {
                     createTicketCMD.createTicket(event.getMember(), event.getGuild());
                 }
             }
-            if (emote.getName().equalsIgnoreCase("✔")) {
-                TicketInfo info = ticketStorage.getTicket(event.getChannel().getId());
-                if (info != null) {
-                    ticketStorage.deleteTicket(info.getUserid(), info.getChannelID());
-                    deleteTicketCMD.deleteChannel(event.getTextChannel());
-                }
-            }
             // MESSAGE REACTION EVENT END
 
         }else if (gevent instanceof MessageReceivedEvent) {
@@ -73,12 +64,10 @@ public class EventHandler implements EventListener {
             Message message = event.getMessage();
 
             if(event.isFromType(ChannelType.TEXT)){
-                TextChannel channel = event.getTextChannel();
                 if(message.getContentRaw().contains("https://discord.gg/") && !member.hasPermission(Permission.MANAGE_SERVER)){
                     sendServerLog(event.getGuild(), message, member);
                     message.delete().queue();
                 }
-
 
                 if (event.getMessage().isWebhookMessage() || event.getMember().getUser().isBot()){
                     return;

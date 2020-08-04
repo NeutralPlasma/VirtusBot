@@ -1,4 +1,4 @@
-package com.neutralplasma.virtusbot.storage;
+package com.neutralplasma.virtusbot.storage.locale;
 
 
 import java.util.HashMap;

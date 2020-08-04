@@ -4,7 +4,7 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.SearchResult;
-import com.neutralplasma.virtusbot.storage.Info;
+import com.neutralplasma.virtusbot.storage.config.Info;
 
 import javax.annotation.Nullable;
 import java.net.MalformedURLException;

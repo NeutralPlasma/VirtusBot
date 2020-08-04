@@ -3,16 +3,8 @@ package com.neutralplasma.virtusbot.commands.general;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.neutralplasma.virtusbot.settings.NewSettingsManager;
-import com.neutralplasma.virtusbot.storage.LocaleHandler;
+import com.neutralplasma.virtusbot.storage.locale.LocaleHandler;
 import com.neutralplasma.virtusbot.utils.AbstractChatUtil;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
-
-import java.awt.*;
-import java.util.function.Consumer;
 
 public class TestCommand extends Command {
 

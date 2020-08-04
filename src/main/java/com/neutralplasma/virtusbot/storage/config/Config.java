@@ -1,4 +1,4 @@
-package com.neutralplasma.virtusbot.storage;
+package com.neutralplasma.virtusbot.storage.config;
 
 
 import org.json.JSONObject;
@@ -48,6 +48,13 @@ public class Config {
                             .put("prefix", ".")
                             .put("token", "")
                             .put("youtube_key", "")
+                            .put("use_mysql", false)
+                            .put("use_SSL", false)
+                            .put("database_ip", "localhost")
+                            .put("database_port", "3306")
+                            .put("database_name", "DATABASE")
+                            .put("database_user", "USER")
+                            .put("database_password", "PASSWORD")
                             .toString(4)
                             .getBytes());
         } catch (IOException ex) {

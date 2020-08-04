@@ -4,8 +4,8 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.neutralplasma.virtusbot.Bot;
 import com.neutralplasma.virtusbot.commands.TicketCommand;
 import com.neutralplasma.virtusbot.settings.NewSettingsManager;
-import com.neutralplasma.virtusbot.storage.LocaleHandler;
-import com.neutralplasma.virtusbot.storage.TicketStorage;
+import com.neutralplasma.virtusbot.storage.locale.LocaleHandler;
+import com.neutralplasma.virtusbot.storage.ticket.TicketStorage;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -36,10 +36,12 @@ public class CreateTicketCMD extends TicketCommand {
     }
 
     protected void execute(CommandEvent event) {
-        if(ticketStorage.getTicketID(event.getAuthor().getId()) == null) {
+        if(ticketStorage.getTicketChannel(event.getAuthor().getId()) == null) {
             String content = localeHandler.getLocale(event.getGuild(), "TICKET_CREATE_MESSAGE");
             event.reply(content);
             createTicket(event.getMember(), event.getGuild());
+        }else{
+            event.reply("You already have an open ticket!");
         }
     }
 

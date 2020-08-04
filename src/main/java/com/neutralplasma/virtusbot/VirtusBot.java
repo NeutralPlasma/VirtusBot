@@ -16,17 +16,19 @@ import com.neutralplasma.virtusbot.commands.general.TestCommand;
 import com.neutralplasma.virtusbot.commands.owner.BlackListCommand;
 import com.neutralplasma.virtusbot.commands.player.LevelCommand;
 import com.neutralplasma.virtusbot.commands.player.PlayerSettingsCommand;
+import com.neutralplasma.virtusbot.commands.ticket.CloseTicketCMD;
 import com.neutralplasma.virtusbot.commands.ticket.CreateTicketCMD;
 import com.neutralplasma.virtusbot.commands.ticket.DeleteTicketCMD;
 import com.neutralplasma.virtusbot.handlers.BlackList;
 import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling;
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler;
-import com.neutralplasma.virtusbot.storage.*;
 import com.neutralplasma.virtusbot.event.EventHandler;
 import com.neutralplasma.virtusbot.settings.NewSettingsManager;
-import com.neutralplasma.virtusbot.storage.dataStorage.MySQL;
-import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
+import com.neutralplasma.virtusbot.storage.config.Config;
+import com.neutralplasma.virtusbot.storage.config.Info;
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
+import com.neutralplasma.virtusbot.storage.locale.LocaleHandler;
+import com.neutralplasma.virtusbot.storage.ticket.TicketStorage;
 import com.neutralplasma.virtusbot.utils.OtherUtil;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.Guild;
@@ -118,6 +120,7 @@ public class VirtusBot {
         commands.add(createTicketCMD);
         commands.add(deleteTicketCMD);
         commands.add(new CreateTicketChannelCmd(newSettingsManager, localeHandler));
+        commands.add(new CloseTicketCMD(ticketStorage, localeHandler));
 
         // admin
         commands.add(new ServerDataCmd(newSettingsManager, localeHandler, playerLeveling, storageHandler, playerSettingsHandler));

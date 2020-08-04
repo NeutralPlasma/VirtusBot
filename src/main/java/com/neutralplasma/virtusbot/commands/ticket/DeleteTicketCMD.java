@@ -2,9 +2,9 @@ package com.neutralplasma.virtusbot.commands.ticket;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.neutralplasma.virtusbot.commands.TicketCommand;
-import com.neutralplasma.virtusbot.storage.LocaleHandler;
-import com.neutralplasma.virtusbot.storage.TicketInfo;
-import com.neutralplasma.virtusbot.storage.TicketStorage;
+import com.neutralplasma.virtusbot.storage.locale.LocaleHandler;
+import com.neutralplasma.virtusbot.storage.ticket.TicketInfo;
+import com.neutralplasma.virtusbot.storage.ticket.TicketStorage;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -26,7 +26,7 @@ public class DeleteTicketCMD extends TicketCommand {
 
     @Override
     protected void execute(CommandEvent event) {
-        TicketInfo ticketid = ticketStorage.getTicket(event.getChannel().getId());
+        TicketInfo ticketid = ticketStorage.getTicketChannel(event.getChannel().getId());
         if(ticketid != null){
             sendMessage(event.getTextChannel(), event.getGuild());
         }

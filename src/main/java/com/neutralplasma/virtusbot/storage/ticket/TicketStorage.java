@@ -1,8 +1,8 @@
-package com.neutralplasma.virtusbot.storage;
+package com.neutralplasma.virtusbot.storage.ticket;
 
 
-import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
+import com.neutralplasma.virtusbot.storage.ticket.TicketInfo;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -27,7 +27,7 @@ public class TicketStorage {
     public void writeSettings(String userID, String channelID){
         TicketInfo info = new TicketInfo(userID, channelID);
         try {
-            addTicket(tableName, info);
+            addTicket(info);
         }catch (Exception error){
             error.printStackTrace();
         }
@@ -36,16 +36,16 @@ public class TicketStorage {
     public void deleteTicket(String userID, String channelID){
         TicketInfo info = new TicketInfo(userID, channelID);
         try {
-            removeTicket(tableName, info);
+            removeTicket(info);
         }catch (SQLException sqlerror){
             sqlerror.printStackTrace();
         }
     }
 
-    public TicketInfo getTicket(String channelID){
+    public TicketInfo getTicketChannel(String channelID){
         try {
             if (!channelID.isEmpty()) {
-                TicketInfo ticketid = getTicketbyChannel(tableName, channelID);
+                TicketInfo ticketid = getTicketbyChannel(channelID);
                 if (ticketid != null) {
                     return ticketid;
                 }
@@ -61,7 +61,7 @@ public class TicketStorage {
     public String getTicketID(String userID){
         try {
             if (!userID.isEmpty()) {
-                TicketInfo ticketid = getTicket(tableName, userID);
+                TicketInfo ticketid = getTicketSQL(userID);
                 if (ticketid != null) {
                     return ticketid.getChannelID();
                 }
@@ -73,9 +73,9 @@ public class TicketStorage {
         return null;
     }
 
-    public TicketInfo getTicket(String tablename, String usedid) throws SQLException{
+    public TicketInfo getTicketSQL(String usedid) throws SQLException{
         try(Connection connection = sql.getConnection()) {
-            String statement = "SELECT * FROM " + tablename + " WHERE userID = ?";
+            String statement = "SELECT * FROM " + tableName + " WHERE userID = ?";
             try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
                 preparedStatement.setString(1, usedid);
                 ResultSet resultSet = preparedStatement.executeQuery();
@@ -88,9 +88,9 @@ public class TicketStorage {
         return null;
     }
 
-    public TicketInfo getTicketbyChannel(String tablename, String channelID) throws SQLException{
+    public TicketInfo getTicketbyChannel(String channelID) throws SQLException{
         try(Connection connection = sql.getConnection()) {
-            String statement = "SELECT * FROM " + tablename + " WHERE channelID = ?";
+            String statement = "SELECT * FROM " + tableName + " WHERE channelID = ?";
             try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
                 preparedStatement.setString(1, channelID);
                 ResultSet resultSet = preparedStatement.executeQuery();
@@ -103,13 +103,13 @@ public class TicketStorage {
         return null;
     }
 
-    public boolean addTicket(String tablename, TicketInfo info) throws SQLException{
-        if(getTicket(tablename, info.userid) != null){
+    public boolean addTicket(TicketInfo info) throws SQLException{
+        if(getTicketSQL(info.userid) != null){
             return false;
         }
         try(Connection connection = sql.getConnection()){
             String statement = "INSERT INTO " +
-                    " " + tablename + " (userID, ChannelID) " +
+                    " " + tableName + " (userID, ChannelID) " +
                     "VALUES (?, ?)";
             try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
                 preparedStatement.setString(1, info.userid);
@@ -120,10 +120,10 @@ public class TicketStorage {
         }
     }
 
-    public boolean removeTicket(String tablename, TicketInfo info) throws SQLException {
-        if(getTicket(tablename, info.userid) != null) {
+    public boolean removeTicket(TicketInfo info) throws SQLException {
+        if(getTicketSQL(info.userid) != null) {
             try (Connection connection = sql.getConnection()) {
-                String statement = "DELETE FROM " + tablename + " WHERE userID = ? AND channelID = ?";
+                String statement = "DELETE FROM " + tableName + " WHERE userID = ? AND channelID = ?";
                 try (PreparedStatement preparedStatement = connection.prepareStatement(statement)) {
                     preparedStatement.setString(1, info.userid);
                     preparedStatement.setString(2, info.channelID);

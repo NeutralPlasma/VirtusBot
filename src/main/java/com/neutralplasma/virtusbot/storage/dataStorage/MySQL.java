@@ -1,11 +1,10 @@
 package com.neutralplasma.virtusbot.storage.dataStorage;
 
-import com.neutralplasma.virtusbot.storage.Info;
+import com.neutralplasma.virtusbot.storage.config.Info;
 import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class MySQL extends Storage{

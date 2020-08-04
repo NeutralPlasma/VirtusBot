@@ -7,10 +7,7 @@ import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerData;
 import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling;
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler;
 import com.neutralplasma.virtusbot.settings.NewSettingsManager;
-import com.neutralplasma.virtusbot.storage.LocaleHandler;
-import com.neutralplasma.virtusbot.storage.dataStorage.MySQL;
-import com.neutralplasma.virtusbot.storage.PlayerStorage;
-import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
+import com.neutralplasma.virtusbot.storage.locale.LocaleHandler;
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
 import com.neutralplasma.virtusbot.utils.FormatUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -179,25 +176,4 @@ public class ServerDataCmd extends AdminCommand {
     }
 
 
-    public void sendPlayerData(TextChannel channel, PlayerStorage player){
-        EmbedBuilder eb = new EmbedBuilder();
-        eb.setTitle("Player data");
-        eb.addField("Data:" ,
-                "**Name:** " + player.getName() + "\n" +
-                        "**Id:** " + player.getIdentifier() + "\n" +
-                        "**First name:** " + player.getFirstname() + "\n" +
-                        "**Last name:** " + player.getLastname() + "\n" +
-                        "**Job:** " + player.getJob() + "\n" +
-                        "**Job Grade:** " + player.getJobgrade() + "\n" +
-                        "**License:** " + player.getLicense() + "\n" +
-                        "**Phone Number:** " + player.getPhonenumber() + "\n" +
-                        "**Is Dead:** " + player.getIs_dead() + "\n" +
-                        "**Group:** " + player.getGroup() + "\n" +
-                        "**Permission Level:** " + player.getPermission_level() + "\n" +
-                        "**Bank:** " + player.getBank() + "\n" +
-                        "**Money:** " + player.getMoney() + "\n" +
-                        "**Loadout:** " + player.getLoadout() + "\n" , false);
-        eb.setColor(Color.orange);
-        channel.sendMessage(eb.build()).queue();
-    }
 }

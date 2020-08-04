@@ -2,7 +2,7 @@ package com.neutralplasma.virtusbot.commands.admin;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.neutralplasma.virtusbot.commands.AdminCommand;
-import com.neutralplasma.virtusbot.storage.LocaleHandler;
+import com.neutralplasma.virtusbot.storage.locale.LocaleHandler;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 

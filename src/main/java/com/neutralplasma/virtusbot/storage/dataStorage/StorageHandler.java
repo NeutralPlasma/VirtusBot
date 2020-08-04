@@ -1,6 +1,6 @@
 package com.neutralplasma.virtusbot.storage.dataStorage;
 
-import com.neutralplasma.virtusbot.storage.Info;
+import com.neutralplasma.virtusbot.storage.config.Info;
 
 import java.sql.Connection;
 import java.sql.SQLException;

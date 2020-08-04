@@ -2,12 +2,16 @@ package com.neutralplasma.virtusbot.commands.ticket;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.neutralplasma.virtusbot.commands.TicketCommand;
-import com.neutralplasma.virtusbot.storage.LocaleHandler;
-import com.neutralplasma.virtusbot.storage.TicketInfo;
-import com.neutralplasma.virtusbot.storage.TicketStorage;
+import com.neutralplasma.virtusbot.storage.locale.LocaleHandler;
+import com.neutralplasma.virtusbot.storage.ticket.TicketInfo;
+import com.neutralplasma.virtusbot.storage.ticket.TicketStorage;
+import com.neutralplasma.virtusbot.utils.AbstractChatUtil;
+import com.neutralplasma.virtusbot.utils.AbstractReactionUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 
 public class CloseTicketCMD extends TicketCommand {
 
@@ -26,13 +30,16 @@ public class CloseTicketCMD extends TicketCommand {
 
     @Override
     protected void execute(CommandEvent event) {
-        TicketInfo ticketid = ticketStorage.getTicket(event.getChannel().getId());
+        TicketInfo ticketid = ticketStorage.getTicketChannel(event.getChannel().getId());
         if(ticketid != null){
-            sendMessage(event.getTextChannel(), event.getGuild());
+            event.reply("TEST");
+            sendMessage(event.getTextChannel(), event.getGuild(), event.getAuthor(), ticketid);
+        }else{
+            event.reply("You don't have an ticket.");
         }
     }
 
-    public void sendMessage(TextChannel channel, Guild guild){
+    public void sendMessage(TextChannel channel, Guild guild, User user, TicketInfo info){
         EmbedBuilder eb = new EmbedBuilder();
 
         String content = localeHandler.getLocale(guild, "TICKET_CLOSE_MESSAGE");
@@ -41,7 +48,19 @@ public class CloseTicketCMD extends TicketCommand {
 
         eb.setTitle(title);
         eb.addField(field_title, content, false);
-        channel.sendMessage(eb.build()).complete().addReaction("✔").queue();
+        Message message = channel.sendMessage(eb.build()).complete();
+        message.addReaction("✔").queue();
+        channel.sendMessage("Test").queue();
+
+        AbstractReactionUtil reactionUtil = new AbstractReactionUtil(user, chatInfo -> {
+        }, message.getJDA(), "✔", message.getId());
+
+        reactionUtil.setOnClose(() -> {
+            ticketStorage.deleteTicket(info.getUserid(), info.getChannelID());
+            deleteChannel(channel);
+        });
+
+
     }
 
     public void deleteChannel(TextChannel channel){

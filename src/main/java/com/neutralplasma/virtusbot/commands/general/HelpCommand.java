@@ -5,10 +5,8 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.menu.Paginator;
 import com.neutralplasma.virtusbot.Bot;
 import com.neutralplasma.virtusbot.VirtusBot;
-import com.neutralplasma.virtusbot.commands.AudioCommand;
 import com.neutralplasma.virtusbot.settings.NewSettingsManager;
-import com.neutralplasma.virtusbot.storage.LocaleHandler;
-import com.neutralplasma.virtusbot.utils.AbstractChatUtil;
+import com.neutralplasma.virtusbot.storage.locale.LocaleHandler;
 import com.neutralplasma.virtusbot.utils.TextUtil;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 
