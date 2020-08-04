@@ -5,6 +5,7 @@ import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler
 import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
 import com.neutralplasma.virtusbot.storage.dataStorage.Storage;
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
+import com.neutralplasma.virtusbot.utils.GraphicUtil;
 import com.neutralplasma.virtusbot.utils.Resizer;
 import com.neutralplasma.virtusbot.utils.TextUtil;
 import net.dv8tion.jda.api.entities.Guild;
@@ -258,39 +259,46 @@ public class PlayerLeveling {
     public void sendInfoImage(User user, PlayerData data, TextChannel channel){
         Thread thread = new Thread(() -> {
             try {
-                int height = 150;
-                int width = 600;
-                URL url = new URL(user.getEffectiveAvatarUrl());
+                String font = "Berlin Sans FB Demi Bold";
+                int height = 521;
+                int width = 1250;
+                boolean darkTheme = true;
+
+
+                double progressBar = Math.max(Math.round(((data.getXp() - this.previous(data)) / (this.getNeededXP(data) - this.previous(data))) * 360), 0);
+                double progress = Math.max(Math.round(((data.getXp() - this.previous(data)) / (this.getNeededXP(data) - this.previous(data))) * 100), 0);
+
+                URL url = new URL("http://images.sloempire.eu/Developing/Level-Banner-01.png");
+                BufferedImage background = ImageIO.read(url.openStream());
+                background = Resizer.AVERAGE.resize(background, width, height);
+
+                GradientPaint primary = new GradientPaint(
+                        0f, 0f, Color.ORANGE, width, 0f, new Color(0xFF2600));
+
+                background = GraphicUtil.dye(background, primary);
+
+                url = new URL("http://images.sloempire.eu/Developing/level-banner-square-01.png");
+                BufferedImage levelSquare = ImageIO.read(url.openStream());
+                background = Resizer.AVERAGE.resize(background, width, height);
+
+
+                url = new URL(user.getEffectiveAvatarUrl());
                 BufferedImage avatar = ImageIO.read(url.openStream());
-                avatar = TextUtil.makeRoundedCorner(avatar, avatar.getHeight(), true);
-                avatar = Resizer.AVERAGE.resize(avatar, 140, 140);
-                boolean darkTheme = false;
-
-                PlayerSettings settings = playerSettingsHandler.getSettings(user);
-                if(settings != null){
-                    if(settings.getAvatarBackgroundImage() != null){
-                        url = new URL(settings.getAvatarBackgroundImage());
-                    }else{
-                        url = new URL(defaultURL);
-                    }
-                    darkTheme = settings.isDarkTheme();
-                }else{
-                    url = new URL(defaultURL);
-                }
-
-
-                BufferedImage avatarBackground = ImageIO.read(url.openStream());
-                avatarBackground = Resizer.AVERAGE.resize(avatarBackground, height, height);
-                avatarBackground = TextUtil.makeRoundedCorner(avatarBackground, 15, true);
+                avatar = Resizer.PROGRESSIVE_BILINEAR.resize(avatar, 400, 400);
 
                 BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+                PlayerSettings settings = playerSettingsHandler.getSettings(user);
+                if (settings != null) {
+                    darkTheme = settings.isDarkTheme();
+                }
 
 
                 RenderingHints rh = new RenderingHints(
                         RenderingHints.KEY_TEXT_ANTIALIASING,
                         RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-                // Create a graphics which can be used to draw into the buffered image
+
                 Graphics2D g2d = bufferedImage.createGraphics();
                 g2d.addRenderingHints(rh);
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -299,53 +307,49 @@ public class PlayerLeveling {
                 g2d.fillRect(0, 0, width, height);
 
                 // Background behind avatar
-                g2d.drawImage(avatarBackground, 6, 6, height-10, height-10, 0, 0, avatarBackground.getWidth(), avatarBackground.getHeight(), null);
-
-                // drawing avatar
-                g2d.drawImage(avatar, 11, 11, height-20, height-20, 0, 0, 140, 140, null);
+                g2d.drawImage(background, 0, 0, width, height, 0, 0, background.getWidth(), background.getHeight(), null);
+                g2d.drawImage(levelSquare, 0, 0, width, height, 0, 0, background.getWidth(), background.getHeight(), null);
 
 
-                // Level text
-                g2d.setFont(new Font("Roboto", Font.BOLD, 32));
-                //g2d.setColor(Color.lightGray);
-                g2d.setColor(darkTheme ? Color.lightGray : Color.darkGray);
-                int size = g2d.getFontMetrics().stringWidth("Level");
-                g2d.drawString("Level", 210 - (size / 2), 60);
+                // Drawing avatar
+                g2d.drawImage(avatar, 30, 30, 350, 350, 0, 0, 400, 400, null);
+                // User name
+                g2d.setPaint(primary);
+                g2d.setFont(new Font(font, Font.BOLD, 50));
+                g2d.drawString(user.getName(), 30, 400);
+                g2d.setColor(darkTheme ? Color.white : Color.darkGray);
+                g2d.setFont(new Font(font, Font.BOLD, 40));
+                g2d.drawString("#" + user.getDiscriminator(), 30, 450);
+
+                //Level/exp text  + number
+                g2d.setColor(darkTheme ? Color.white : Color.darkGray);
+                g2d.setFont(new Font(font, Font.ITALIC, 40));
+                g2d.drawString("Level:", 400, 90);
+                g2d.drawString("Experience:", 400, 210);
+
+                g2d.setFont(new Font(font, Font.BOLD, 70));
+                g2d.drawString(data.getLevel() + "", 400, 160);
+                g2d.drawString(data.getXp() + "", 400, 280);
+
+
+                // Progress circle
+                g2d.setPaint(primary);
+                g2d.fillArc(1006 - 220 / 2, 258 - 220 / 2, 220, 220, 270, (int) progressBar);
+                g2d.setColor(Color.white);
+                g2d.fillOval(1006 - 200 / 2, 258 - 200 / 2, 200, 200);
+
 
                 // Level number
-                g2d.setFont(new Font("Roboto", Font.BOLD, 42));
-                String level = String.valueOf(data.getLevel());
-                size = g2d.getFontMetrics().stringWidth(level);
-                g2d.drawString(level, 210 - (size / 2), 110);
+                float textSize = 45;
+                g2d.setFont(new Font(font, Font.BOLD, (int) textSize));
+
+                String level = progress + "%";
+                int size = g2d.getFontMetrics().stringWidth(level);
+
+                g2d.setPaint(primary);
+                g2d.drawString(level, (float) (1006.23 - (size / 2)), (float) 258.32 + (textSize / 4));
 
 
-                // Experience text
-                g2d.setFont(new Font("Roboto", Font.BOLD, 24));
-                //g2d.setColor(Color.lightGray);
-                g2d.setColor(darkTheme ? Color.lightGray : Color.darkGray);
-                size = g2d.getFontMetrics().stringWidth("EXPERIENCE");
-                g2d.drawString("EXPERIENCE", 570 - size, 60);
-
-                // Experience number
-                g2d.setFont(new Font("Roboto", Font.BOLD, 24));
-                //g2d.setColor(Color.lightGray);
-                g2d.setColor(darkTheme ? Color.lightGray : Color.darkGray);
-                String exp = String.valueOf(data.getXp());
-                size = g2d.getFontMetrics().stringWidth(exp);
-                g2d.drawString(exp, 570 - size, 110);
-
-                // Experience bar background
-                //g2d.setColor(Color.lightGray);
-                g2d.setColor(darkTheme ? Color.lightGray : Color.darkGray);
-                g2d.fillRoundRect(270, 75, 300, 7, 6, 6);
-
-                // Experience bar
-                double progressBar = Math.max(Math.round(((data.getXp() - this.previous(data)) / (this.getNeededXP(data) - this.previous(data))) * 300), 6);
-                g2d.setColor(new Color(255, 115, 0));
-                g2d.fillRoundRect(272, 76, (int) progressBar, 5, 4, 4);
-
-
-                // Disposes of this graphics context and releases any system resources that it is using.
                 g2d.dispose();
                 try {
                     File file = new File("myimage.png");
@@ -354,7 +358,7 @@ public class PlayerLeveling {
                 } catch (IOException error) {
                     channel.sendMessage("ERROR!").queue();
                 }
-            }catch (Exception error){
+            } catch (Exception error) {
                 error.printStackTrace();
             }
         });
@@ -366,22 +370,31 @@ public class PlayerLeveling {
         Thread thread = new Thread(() -> {
             try {
                 String font = "Berlin Sans FB Demi Bold";
-                int height = 250;
-                int width = 600;
+                int height = 521;
+                int width = 1250;
                 boolean darkTheme = true;
 
-                int spread = 8;
-                int blurIntensity = 8;
-                int blur = 30-blurIntensity;
 
-                URL url = new URL("http://images.sloempire.eu/Developing/LevelUP-BANNER-01.png");
+                double progressBar = Math.max(Math.round(((data.getXp() - this.previous(data)) / (this.getNeededXP(data) - this.previous(data))) * 360), 0);
+                double progress = Math.max(Math.round(((data.getXp() - this.previous(data)) / (this.getNeededXP(data) - this.previous(data))) * 100), 0);
+
+                URL url = new URL("http://images.sloempire.eu/Developing/Level-Banner-01.png");
                 BufferedImage background = ImageIO.read(url.openStream());
                 background = Resizer.AVERAGE.resize(background, width, height);
 
+                GradientPaint primary = new GradientPaint(
+                        0f, 0f, Color.ORANGE, width, 0f, new Color(0xFF2600));
+
+                background = GraphicUtil.dye(background, primary);
+
+                url = new URL("http://images.sloempire.eu/Developing/level-banner-square-01.png");
+                BufferedImage levelSquare = ImageIO.read(url.openStream());
+                background = Resizer.AVERAGE.resize(background, width, height);
+
+
                 url = new URL(user.getEffectiveAvatarUrl());
                 BufferedImage avatar = ImageIO.read(url.openStream());
-                avatar = TextUtil.makeRoundedCorner(avatar, avatar.getHeight(), true);
-                avatar = Resizer.PROGRESSIVE_BILINEAR.resize(avatar, 170, 170);
+                avatar = Resizer.PROGRESSIVE_BILINEAR.resize(avatar, 400, 400);
 
                 BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
@@ -405,30 +418,54 @@ public class PlayerLeveling {
 
                 // Background behind avatar
                 g2d.drawImage(background, 0, 0, width, height, 0, 0, background.getWidth(), background.getHeight(), null);
+                g2d.drawImage(levelSquare, 0, 0, width, height, 0, 0, background.getWidth(), background.getHeight(), null);
 
 
                 // Drawing avatar
-                g2d.drawImage(avatar, 60, 60, 230, 230, 0, 0, 200, 200, null);
+                g2d.drawImage(avatar, 30, 30, 350, 350, 0, 0, 400, 400, null);
+                // User name
+                g2d.setPaint(primary);
+                g2d.setFont(new Font(font, Font.BOLD, 50));
+                g2d.drawString(user.getName(), 30, 400);
+                g2d.setColor(Color.WHITE);
+                g2d.setFont(new Font(font, Font.BOLD, 40));
+                g2d.drawString("#" + user.getDiscriminator(), 30, 450);
+
+                //Level text  + number
+                g2d.setColor(Color.WHITE);
+                g2d.setFont(new Font(font, Font.ITALIC, 40));
+                g2d.drawString("Level:", 400, 90);
+                g2d.drawString("Experience:", 400, 210);
+
+                g2d.setFont(new Font(font, Font.BOLD, 70));
+                g2d.drawString(data.getLevel() + "", 400, 160);
+                g2d.drawString(data.getXp() + "", 400, 280);
 
 
 
+
+
+                // Progress circle
+                g2d.setPaint(primary);
+                g2d.fillArc(1006-220/2, 258-220/2, 220, 220, 270, (int) progressBar);
+                g2d.setColor(Color.white);
+                g2d.fillOval(1006-200/2, 258-200/2, 200, 200);
 
 
 
                 // Level number
-                g2d.setFont(new Font(font, Font.BOLD, 80));
-                String level = String.valueOf(data.getLevel());
+                float textSize = 45;
+                g2d.setFont(new Font(font, Font.BOLD, (int) textSize));
+                String level = progress + "%";
                 int size = g2d.getFontMetrics().stringWidth(level);
-
-                // shadow TODO: ADD SHADOW??
-
-                g2d.setColor(new Color(0, 0, 0, 0.3f));
-                g2d.drawString(level, 488 - (size / 2), 165);
+                g2d.setPaint(primary);
+                g2d.drawString(level, (float) (1006.23 - (size / 2)),(float) 258.32 + (textSize/4));
 
 
 
-                g2d.setColor(new Color(179, 179, 179));
-                g2d.drawString(level, 485 - (size / 2), 160);
+
+                //g2d.setColor(new Color(179, 179, 179));
+                //g2d.drawString(level, 485 - (size / 2), 160);
 
 
 

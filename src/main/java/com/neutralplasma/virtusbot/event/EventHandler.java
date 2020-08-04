@@ -21,20 +21,15 @@ import java.awt.*;
 public class EventHandler implements EventListener {
     private NewSettingsManager newSettingsManager;
     private CreateTicketCMD createTicketCMD;
-    private TicketStorage ticketStorage;
-    private DeleteTicketCMD deleteTicketCMD;
     private LocaleHandler localeHandler;
     private PlayerLeveling playerLeveling;
     private boolean setuped = false;
 
 
     public EventHandler(NewSettingsManager newSettingsManager, CreateTicketCMD createTicketCMD,
-                        TicketStorage ticketStorage, DeleteTicketCMD deleteTicketCMD,
                         LocaleHandler localeHandler, PlayerLeveling playerLeveling){
         this.newSettingsManager = newSettingsManager;
         this.createTicketCMD = createTicketCMD;
-        this.ticketStorage = ticketStorage;
-        this.deleteTicketCMD = deleteTicketCMD;
         this.localeHandler = localeHandler;
         this.playerLeveling = playerLeveling;
     }

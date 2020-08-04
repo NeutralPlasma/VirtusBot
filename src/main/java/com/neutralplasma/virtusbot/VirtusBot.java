@@ -88,7 +88,7 @@ public class VirtusBot {
         CreateTicketCMD createTicketCMD = new CreateTicketCMD(ticketStorage, bot, newSettingsManager, localeHandler);
         DeleteTicketCMD deleteTicketCMD = new DeleteTicketCMD(ticketStorage, localeHandler);
 
-        EventHandler eventHandler = new EventHandler(newSettingsManager, createTicketCMD, ticketStorage, deleteTicketCMD,
+        EventHandler eventHandler = new EventHandler(newSettingsManager, createTicketCMD,
                 localeHandler, playerLeveling);
 
 
