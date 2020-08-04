@@ -17,6 +17,7 @@ package com.neutralplasma.virtusbot.commands;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.neutralplasma.virtusbot.VirtusBot;
 
 /**
  *
@@ -27,7 +28,7 @@ public abstract class TicketCommand extends Command
 
     public TicketCommand() {
         this.guildOnly = true;
-        this.category = new Category("Ticket");
+        this.category = new Category("Ticket", event -> !VirtusBot.getBlackList().isBlackListed(event.getAuthor().getId()));
     }
 
     @Override

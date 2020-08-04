@@ -13,10 +13,12 @@ import com.neutralplasma.virtusbot.commands.audio.*;
 import com.neutralplasma.virtusbot.commands.general.HelpCommand;
 import com.neutralplasma.virtusbot.commands.general.SuggestCmd;
 import com.neutralplasma.virtusbot.commands.general.TestCommand;
+import com.neutralplasma.virtusbot.commands.owner.BlackListCommand;
 import com.neutralplasma.virtusbot.commands.player.LevelCommand;
 import com.neutralplasma.virtusbot.commands.player.PlayerSettingsCommand;
 import com.neutralplasma.virtusbot.commands.ticket.CreateTicketCMD;
 import com.neutralplasma.virtusbot.commands.ticket.DeleteTicketCMD;
+import com.neutralplasma.virtusbot.handlers.BlackList;
 import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling;
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler;
 import com.neutralplasma.virtusbot.storage.*;
@@ -43,6 +45,9 @@ public class VirtusBot {
     public final static String prefix = Info.PREFIX;
     private final static String levelingTable = "levelingdata";
     public static ArrayList<Command> commands = new ArrayList<>();
+    public static SQL sql = new SQL();
+
+    public static BlackList blackList;
 
     public static void main(String[] args) {
         // GLOBAL VARIABLES -- YES --
@@ -51,9 +56,9 @@ public class VirtusBot {
         String version = OtherUtil.getCurrentVersion();
         AudioManager audioManager = new AudioManager();
         Config config = new Config();
-        SQL sql = new SQL();
         MySQL mySQL = new MySQL();
         sql.openConnection();
+        blackList = new BlackList(sql);
 
         TicketStorage ticketStorage = new TicketStorage(sql);
         NewSettingsManager newSettingsManager = new NewSettingsManager(sql);
@@ -129,6 +134,9 @@ public class VirtusBot {
         commands.add(new ShuffleCommand(audioManager));
         commands.add(new RepeatCommand(audioManager));
 
+        // owner
+        commands.add(new BlackListCommand());
+
         // player
         commands.add(new LevelCommand(playerLeveling));
         commands.add(new PlayerSettingsCommand(playerSettingsHandler));
@@ -164,6 +172,9 @@ public class VirtusBot {
 
     }
 
+    public static BlackList getBlackList() {
+        return blackList;
+    }
 
     public static ArrayList<Command> getCommands(){
         return commands;

@@ -20,19 +20,14 @@ import com.neutralplasma.virtusbot.VirtusBot;
 import net.dv8tion.jda.api.Permission;
 
 
-public abstract class AdminCommand extends Command {
-    public AdminCommand()
+public abstract class OwnerCommand extends Command {
+    public OwnerCommand()
     {
-        this.category = new Category("Admin", event -> {
-            if(VirtusBot.getBlackList().isBlackListed(event.getAuthor().getId())){
-                return false;
-            }
+        this.category = new Category("Owner", event -> {
             if(event.getAuthor().getId().equals(event.getClient().getOwnerId()))
                 return true;
-            if(event.getGuild()==null)
-                return true;
-            return event.getMember().hasPermission(Permission.MANAGE_SERVER);
+            return false;
         });
-        this.guildOnly = true;
+        this.guildOnly = false;
     }
 }
