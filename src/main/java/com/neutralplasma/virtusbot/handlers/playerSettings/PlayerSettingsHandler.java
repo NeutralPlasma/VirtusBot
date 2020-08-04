@@ -1,7 +1,8 @@
 package com.neutralplasma.virtusbot.handlers.playerSettings;
 
 import com.google.gson.Gson;
-import com.neutralplasma.virtusbot.storage.SQL;
+import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
+import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
 import com.neutralplasma.virtusbot.utils.TextUtil;
 import net.dv8tion.jda.api.entities.User;
 
@@ -15,12 +16,12 @@ import java.util.TimerTask;
 
 public class PlayerSettingsHandler {
 
-    private SQL sql;
+    private StorageHandler sql;
     private Gson gson = new Gson();
 
     private HashMap<String, PlayerSettings> pSettings = new HashMap<>();
 
-    public PlayerSettingsHandler(SQL sql){
+    public PlayerSettingsHandler(StorageHandler sql){
         this.sql = sql;
 
         try {

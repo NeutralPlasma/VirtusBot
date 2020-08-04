@@ -24,6 +24,9 @@ import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler
 import com.neutralplasma.virtusbot.storage.*;
 import com.neutralplasma.virtusbot.event.EventHandler;
 import com.neutralplasma.virtusbot.settings.NewSettingsManager;
+import com.neutralplasma.virtusbot.storage.dataStorage.MySQL;
+import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
+import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
 import com.neutralplasma.virtusbot.utils.OtherUtil;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.Guild;
@@ -32,7 +35,6 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import javax.annotation.Nullable;
 import javax.security.auth.login.LoginException;
 import java.awt.*;
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class VirtusBot {
@@ -45,7 +47,7 @@ public class VirtusBot {
     public final static String prefix = Info.PREFIX;
     private final static String levelingTable = "levelingdata";
     public static ArrayList<Command> commands = new ArrayList<>();
-    public static SQL sql = new SQL();
+    public static StorageHandler storageHandler;
 
     public static BlackList blackList;
 
@@ -56,16 +58,17 @@ public class VirtusBot {
         String version = OtherUtil.getCurrentVersion();
         AudioManager audioManager = new AudioManager();
         Config config = new Config();
-        MySQL mySQL = new MySQL();
-        sql.openConnection();
-        blackList = new BlackList(sql);
 
-        TicketStorage ticketStorage = new TicketStorage(sql);
-        NewSettingsManager newSettingsManager = new NewSettingsManager(sql);
+        storageHandler = new StorageHandler();
+
+        blackList = new BlackList(storageHandler);
+
+        TicketStorage ticketStorage = new TicketStorage(storageHandler);
+        NewSettingsManager newSettingsManager = new NewSettingsManager(storageHandler);
 
         // DATASTORAGE SETUP
-        PlayerSettingsHandler playerSettingsHandler = new PlayerSettingsHandler(sql);
-        PlayerLeveling playerLeveling = new PlayerLeveling(sql, playerSettingsHandler);
+        PlayerSettingsHandler playerSettingsHandler = new PlayerSettingsHandler(storageHandler);
+        PlayerLeveling playerLeveling = new PlayerLeveling(storageHandler, playerSettingsHandler);
 
         //mySQL.setup();
         System.setProperty("http.agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0");
@@ -74,7 +77,7 @@ public class VirtusBot {
 
 
         // LOCALE HANDLER
-        LocaleHandler localeHandler = new LocaleHandler(newSettingsManager, sql, bot);
+        LocaleHandler localeHandler = new LocaleHandler(newSettingsManager, storageHandler, bot);
 
         // MUSIC
         YoutubeSearch youtubeSearch = new YoutubeSearch();
@@ -117,7 +120,7 @@ public class VirtusBot {
         commands.add(new CreateTicketChannelCmd(newSettingsManager, localeHandler));
 
         // admin
-        commands.add(new ServerDataCmd(mySQL, newSettingsManager, localeHandler, playerLeveling, sql, playerSettingsHandler));
+        commands.add(new ServerDataCmd(newSettingsManager, localeHandler, playerLeveling, storageHandler, playerSettingsHandler));
         commands.add(new SetSuggestCmd(newSettingsManager, localeHandler));
         commands.add(new VoteCommand(localeHandler));
         commands.add(new SayCommand());

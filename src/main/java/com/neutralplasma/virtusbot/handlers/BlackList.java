@@ -1,7 +1,7 @@
 package com.neutralplasma.virtusbot.handlers;
 
-import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettings;
-import com.neutralplasma.virtusbot.storage.SQL;
+import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
+import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
 import com.neutralplasma.virtusbot.utils.TextUtil;
 
 import java.sql.Connection;
@@ -11,15 +11,15 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class BlackList {
-    private SQL sql;
+    private StorageHandler storageHandler;
     private final String TableName = "BlackList";
     private ArrayList<String> blackList = new ArrayList<>();
 
-    public BlackList(SQL sql){
-        this.sql = sql;
+    public BlackList(StorageHandler storageHandler){
+        this.storageHandler = storageHandler;
 
         try{
-            sql.createTable(TableName, "UserID TEXT");
+            storageHandler.createTable(TableName, "UserID TEXT");
         }catch (SQLException error){
             error.printStackTrace();
         }
@@ -70,8 +70,8 @@ public class BlackList {
     public void syncBlackList() throws SQLException{
         List<String> data = new ArrayList<>(blackList);
 
-        try(Connection connection = sql.getConnection()){
-            String statement = "DELETE FROM PlayerSettings;";
+        try(Connection connection = storageHandler.getConnection()){
+            String statement = "DELETE FROM "+ TableName + ";";
             try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
                 preparedStatement.execute();
             }
@@ -88,7 +88,7 @@ public class BlackList {
     }
 
     public void cacheBlackList() throws SQLException{
-        try(Connection connection = sql.getConnection()){
+        try(Connection connection = storageHandler.getConnection()){
             String statement = "SELECT * from " + TableName + ";";
             try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
                 int amount = 0;

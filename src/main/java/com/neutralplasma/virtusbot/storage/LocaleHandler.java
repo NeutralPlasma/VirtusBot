@@ -1,23 +1,30 @@
 package com.neutralplasma.virtusbot.storage;
 
+import com.google.gson.Gson;
 import com.neutralplasma.virtusbot.Bot;
 import com.neutralplasma.virtusbot.settings.NewSettingsManager;
+import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
+import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
 import com.neutralplasma.virtusbot.utils.TextUtil;
 import net.dv8tion.jda.api.entities.Guild;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 
 public class LocaleHandler {
     private NewSettingsManager newSettingsManager;
-    private SQL sql;
+    private StorageHandler sql;
     private HashMap<String, LocaleData> stored = new HashMap<>();
     private HashMap<String, String> defaultValues = new HashMap<>();
     private Bot bot;
+    private Gson gson = new Gson();
 
 
 
-    public LocaleHandler(NewSettingsManager newSettingsManager, SQL sql, Bot bot){
+    public LocaleHandler(NewSettingsManager newSettingsManager, StorageHandler sql, Bot bot){
         this.newSettingsManager = newSettingsManager;
         this.sql = sql;
         this.bot = bot;
@@ -34,12 +41,12 @@ public class LocaleHandler {
     public void setup(){
         for (Guild guild : bot.getJDA().getGuilds()){
             try {
-                LocaleData data = sql.getServerLocale(guild.getId());
+                LocaleData data = getServerLocale(guild.getId());
 
-                if (sql.getServerLocale(guild.getId()) == null){
+                if (getServerLocale(guild.getId()) == null){
                     TextUtil.sendMessage("Adding");
-                    sql.addServerLocale(guild.getId());
-                    data = sql.getServerLocale(guild.getId());
+                    addServerLocale(guild.getId());
+                    data = getServerLocale(guild.getId());
                 }
                 TextUtil.sendMessage("Added to storage: " + data.getAllLocales().get("TEST"));
                 stored.put(guild.getId(), data);
@@ -97,10 +104,57 @@ public class LocaleHandler {
         stored.put(guild.getId(), data);
         HashMap<String, String> allLocales = data.getAllLocales();
         try {
-            sql.updateGuildLocales(guild.getId(), allLocales);
+            updateGuildLocales(guild.getId(), allLocales);
         }catch (SQLException error){
             TextUtil.sendMessage("Could not update guild locales");
         }
 
+    }
+
+    /*
+        SQL STUFF
+     */
+
+
+    public LocaleData getServerLocale(String guildid) throws SQLException{
+        try(Connection connection = sql.getConnection()){
+            String statement = "SELECT localedata FROM serverlocales WHERE guildID = ?";
+            try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
+                preparedStatement.setString(1, guildid);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while(resultSet.next()){
+                    return new LocaleData(gson.fromJson(resultSet.getString("localedata"), HashMap.class));
+                }
+            }
+        }
+        return null;
+    }
+
+    public boolean addServerLocale(String guildid) throws SQLException{
+        try(Connection connection = sql.getConnection()){
+            String statement = "INSERT INTO serverlocales (guildID, localedata) VALUES (?, ?)";
+            try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
+                preparedStatement.setString(1, guildid);
+                HashMap<String, String> data = new HashMap<>();
+                data.put("TEST", "This is setup message");
+                String compileddata = gson.toJson(data);
+                preparedStatement.setString(2, compileddata);
+                preparedStatement.execute();
+            }
+        }
+        return true;
+    }
+
+    public void updateGuildLocales(String guildid, HashMap<String, String> data) throws SQLException{
+        String json = gson.toJson(data);
+        try(Connection connection = sql.getConnection()){
+            String statement = "UPDATE serverlocales " +
+                    "SET localedata = ? WHERE guildID = ?";
+            try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
+                preparedStatement.setString(1, json);
+                preparedStatement.setString(2, guildid);
+                preparedStatement.execute();
+            }
+        }
     }
 }

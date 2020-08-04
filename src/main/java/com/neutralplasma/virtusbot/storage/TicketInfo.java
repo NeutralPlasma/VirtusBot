@@ -2,8 +2,8 @@ package com.neutralplasma.virtusbot.storage;
 
 public class TicketInfo {
 
-    String userid = "";
-    String channelID = "";
+    public String userid = "";
+    public String channelID = "";
 
     public TicketInfo(String userid, String channelID){
         this.userid = userid;

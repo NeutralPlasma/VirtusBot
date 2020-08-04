@@ -30,8 +30,14 @@ public class Config {
         }
     }
 
-    String getValue(String key) {
+    public String getValue(String key) {
         return configObject == null ? null : configObject.get(key).toString();
+    }
+    Boolean getBoolean(String key) {
+        return configObject == null ? null : configObject.getBoolean(key);
+    }
+    Integer getInt(String key) {
+        return configObject == null ? null : configObject.getInt(key);
     }
 
     private void create() {

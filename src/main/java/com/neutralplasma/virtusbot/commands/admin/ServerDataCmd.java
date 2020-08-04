@@ -8,45 +8,32 @@ import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling;
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler;
 import com.neutralplasma.virtusbot.settings.NewSettingsManager;
 import com.neutralplasma.virtusbot.storage.LocaleHandler;
-import com.neutralplasma.virtusbot.storage.MySQL;
+import com.neutralplasma.virtusbot.storage.dataStorage.MySQL;
 import com.neutralplasma.virtusbot.storage.PlayerStorage;
-import com.neutralplasma.virtusbot.storage.SQL;
+import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
+import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
 import com.neutralplasma.virtusbot.utils.FormatUtil;
-import com.neutralplasma.virtusbot.utils.Resizer;
-import com.neutralplasma.virtusbot.utils.TextUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.internal.requests.Route;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.font.LineBreakMeasurer;
-import java.awt.font.TextLayout;
-import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
-import java.awt.image.ImageObserver;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.sql.SQLException;
 import java.util.List;
 
 public class ServerDataCmd extends AdminCommand {
 
-    private MySQL mySQL;
-    private SQL sql;
+    private StorageHandler sql;
     private NewSettingsManager settingsManager;
     private LocaleHandler localeHandler;
     private PlayerLeveling playerLeveling;
     private PlayerSettingsHandler playerSettingsHandler;
 
-    public ServerDataCmd(MySQL mySQL, NewSettingsManager settingsManager, LocaleHandler localeHandler,
-                         PlayerLeveling playerLeveling, SQL sql, PlayerSettingsHandler playerSettingsHandler)
+    public ServerDataCmd(NewSettingsManager settingsManager, LocaleHandler localeHandler,
+                         PlayerLeveling playerLeveling, StorageHandler sql, PlayerSettingsHandler playerSettingsHandler)
     {
         this.name = "serverdata";
         this.help = "Simple command for checking server stuff";
         this.arguments = "<SUBCOMMAND>";
-        this.mySQL = mySQL;
         this.settingsManager = settingsManager;
         this.localeHandler = localeHandler;
         this.playerLeveling = playerLeveling;
@@ -64,31 +51,8 @@ public class ServerDataCmd extends AdminCommand {
 
 
         if(args.length >= 1){
-            if (args[0].equalsIgnoreCase("money")){
-                int money;
-                try {
-                    money = mySQL.getInt(args[1], "money");
-                }catch (SQLException error){
-                    money = 0;
-                }
-                commandEvent.reply("Money: " + money);
-            }else if(args[0].equalsIgnoreCase("bank")){
-                int money;
-                try {
-                    money = mySQL.getInt(args[1], "bank");
-                }catch (SQLException error){
-                    money = 0;
-                }
-                commandEvent.reply("Bank: " + money);
-            }else if(args[0].equalsIgnoreCase("data")){
-                try {
-                    PlayerStorage player = mySQL.getPlayerByID(args[1]);
-                    sendPlayerData(commandEvent.getTextChannel(), player);
-                }catch (SQLException error){
-                    error.printStackTrace();
-                }
 
-            }else if (args[0].equalsIgnoreCase("adminadd")){
+            if (args[0].equalsIgnoreCase("adminadd")){
                 boolean data = settingsManager.addStringData(guild, "data", commandEvent.getChannel().getId());
                 if(data)
                     commandEvent.reply("Adding data!");

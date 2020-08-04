@@ -17,7 +17,7 @@ public class CurrentPlayingCommand extends AudioCommand {
     public CurrentPlayingCommand(AudioManager audioManager){
         this.name = "current";
         this.help = "Gets the current playing music.";
-        this.aliases = new String[]{"cplay", "cplaying"};
+        this.aliases = new String[]{"cplay", "cplaying", "c"};
         this.audioManager = audioManager;
     }
 

@@ -2,7 +2,9 @@ package com.neutralplasma.virtusbot.handlers.playerLeveling;
 
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettings;
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler;
-import com.neutralplasma.virtusbot.storage.SQL;
+import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
+import com.neutralplasma.virtusbot.storage.dataStorage.Storage;
+import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
 import com.neutralplasma.virtusbot.utils.Resizer;
 import com.neutralplasma.virtusbot.utils.TextUtil;
 import net.dv8tion.jda.api.entities.Guild;
@@ -24,7 +26,7 @@ import java.util.*;
 public class PlayerLeveling {
 
     private final Random random = new Random();
-    private SQL sql;
+    private StorageHandler storage;
     private PlayerSettingsHandler playerSettingsHandler;
     private final String defaultURL = "https://htmlcolorcodes.com/assets/images/html-color-codes-color-tutorials-hero-00e10b1f.jpg";
     private final ArrayList<String> blackListed = new ArrayList<>();
@@ -33,13 +35,13 @@ public class PlayerLeveling {
     public HashMap<String, PlayerData> users = new HashMap<>();
 
 
-    public PlayerLeveling(SQL sql, PlayerSettingsHandler playerSettingsHandler){
-        this.sql = sql;
+    public PlayerLeveling(StorageHandler storage, PlayerSettingsHandler playerSettingsHandler){
+        this.storage = storage;
         this.playerSettingsHandler = playerSettingsHandler;
         blackListed.add("723303528780529677");
 
         try {
-            sql.createTable(tableName,
+            storage.createTable(tableName,
                     "userID TEXT," +
                     "guildID TEXT," +
                     "xp LONG," +
@@ -88,7 +90,7 @@ public class PlayerLeveling {
     public void syncUsers() throws SQLException{
         HashMap<String, PlayerData> data = new HashMap<>(users);
 
-        try(Connection connection = sql.getConnection()){
+        try(Connection connection = storage.getConnection()){
             String statement = "DELETE FROM " + tableName + ";";
             try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
                 preparedStatement.execute();
@@ -118,7 +120,7 @@ public class PlayerLeveling {
      */
 
     public void cacheUsers() throws SQLException{
-        try(Connection connection = sql.getConnection()){
+        try(Connection connection = storage.getConnection()){
             String statement = "SELECT * from " + tableName + ";";
             try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
                 int amount = 0;
@@ -245,7 +247,8 @@ public class PlayerLeveling {
             // TODO: UPDATE LEVELING MESSAGE.
             if(channel != null){
                 if(!blackListed.contains(channel.getId())) {
-                    channel.sendMessage("Leveled up to: " + (currentLevel + 1)).queue();
+                    sendLevelUpMessage(user, data, channel);
+                    //channel.sendMessage("Leveled up to: " + (currentLevel + 1)).queue();
                 }
             }
 
@@ -362,15 +365,23 @@ public class PlayerLeveling {
     public void sendLevelUpMessage(User user, PlayerData data, TextChannel channel){
         Thread thread = new Thread(() -> {
             try {
-                int height = 150;
+                String font = "Berlin Sans FB Demi Bold";
+                int height = 250;
                 int width = 600;
-                boolean darkTheme = false;
+                boolean darkTheme = true;
+
+                int spread = 8;
+                int blurIntensity = 8;
+                int blur = 30-blurIntensity;
+
                 URL url = new URL("http://images.sloempire.eu/Developing/LevelUP-BANNER-01.png");
-
-
-
                 BufferedImage background = ImageIO.read(url.openStream());
                 background = Resizer.AVERAGE.resize(background, width, height);
+
+                url = new URL(user.getEffectiveAvatarUrl());
+                BufferedImage avatar = ImageIO.read(url.openStream());
+                avatar = TextUtil.makeRoundedCorner(avatar, avatar.getHeight(), true);
+                avatar = Resizer.PROGRESSIVE_BILINEAR.resize(avatar, 170, 170);
 
                 BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
@@ -396,25 +407,31 @@ public class PlayerLeveling {
                 g2d.drawImage(background, 0, 0, width, height, 0, 0, background.getWidth(), background.getHeight(), null);
 
 
+                // Drawing avatar
+                g2d.drawImage(avatar, 60, 60, 230, 230, 0, 0, 200, 200, null);
 
-                // Level text
-                g2d.setFont(new Font("Comic Panels", Font.PLAIN, 62));
-                g2d.setColor(darkTheme ? Color.lightGray : Color.darkGray);
-                int size = g2d.getFontMetrics().stringWidth("LEVEL");
-                g2d.drawString("LEVEL", 100 - (size / 2), 106);
 
-                // UP Text
-                g2d.setFont(new Font("Comic Panels", Font.BOLD, 62));
-                size = g2d.getFontMetrics().stringWidth("UP");
-                g2d.drawString("UP", 520 - (size / 2), 106);
+
 
 
 
                 // Level number
-                g2d.setFont(new Font("Comic Panels", Font.BOLD, 80));
+                g2d.setFont(new Font(font, Font.BOLD, 80));
                 String level = String.valueOf(data.getLevel());
-                size = g2d.getFontMetrics().stringWidth(level);
-                g2d.drawString(level, 300 - (size / 2), 111);
+                int size = g2d.getFontMetrics().stringWidth(level);
+
+                // shadow TODO: ADD SHADOW??
+
+                g2d.setColor(new Color(0, 0, 0, 0.3f));
+                g2d.drawString(level, 488 - (size / 2), 165);
+
+
+
+                g2d.setColor(new Color(179, 179, 179));
+                g2d.drawString(level, 485 - (size / 2), 160);
+
+
+
 
 
                 // Disposes of this graphics context and releases any system resources that it is using.

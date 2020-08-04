@@ -54,7 +54,7 @@ public class SayCommand extends AdminCommand {
                 abstractChatUtil.setOnClose(() -> {
                     commandEvent.reply("Please provide the field content.");
                     AbstractChatUtil abstractChatUtil2 = new AbstractChatUtil(commandEvent.getAuthor(), chatInfo2 -> {
-                        finalMessage.addField(title.get(), chatInfo2.getMessage(), false);
+                        finalMessage.addField(title.get(), chatInfo2.getMessage().replace("\\n", System.lineSeparator()), false);
                         savedMessages.put(member.getId(), finalMessage);
                     }, commandEvent.getJDA());
 
