@@ -49,22 +49,7 @@ public class ServerDataCmd extends AdminCommand {
 
         if(args.length >= 1){
 
-            if (args[0].equalsIgnoreCase("adminadd")){
-                boolean data = settingsManager.addStringData(guild, "data", commandEvent.getChannel().getId());
-                if(data)
-                    commandEvent.reply("Adding data!");
-                else
-                    commandEvent.reply("Error");
-
-
-            }else if (args[0].equalsIgnoreCase("adminget")){
-                TextChannel channel = settingsManager.getTextChannel(guild, "data");
-                if (channel != null){
-                    commandEvent.reply(channel.getAsMention());
-                }else{
-                    commandEvent.reply("No data found!");
-                }
-            }else if(args[0].equalsIgnoreCase("setrole")) {
+            if(args[0].equalsIgnoreCase("setrole")) {
                 if (args.length > 2) {
                     String setting = args[1];
                     List<Role> roles = FinderUtil.findRoles(args[2], guild);
@@ -130,23 +115,6 @@ public class ServerDataCmd extends AdminCommand {
                 eb.addField("Locales", builder.toString(), false);
 
                 commandEvent.reply(eb.build());
-            }else if(args[0].equalsIgnoreCase("stop")){
-                try {
-                    playerLeveling.syncUsers();
-                    playerSettingsHandler.syncSettings();
-                    System.exit(1);
-                }catch (SQLException error){
-                    commandEvent.reply("Failed saving SQL data!" + error.getMessage());
-                }
-                commandEvent.getJDA().shutdown();
-            }else if(args[0].equalsIgnoreCase("save")){
-                try {
-                    playerLeveling.syncUsers();
-                    playerSettingsHandler.syncSettings();
-                }catch (SQLException error){
-                    commandEvent.reply("Failed saving SQL data!" + error.getMessage());
-                }
-                commandEvent.reply("Saved data!");
             }else if(args[0].equalsIgnoreCase("test")){
                 try {
                     PlayerData data = playerLeveling.getUser(commandEvent.getAuthor(), commandEvent.getGuild());

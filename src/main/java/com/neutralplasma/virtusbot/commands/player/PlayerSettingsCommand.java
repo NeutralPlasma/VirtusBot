@@ -49,6 +49,7 @@ public class PlayerSettingsCommand extends PlayerCommand {
                     if(color.length > 2){
                         playerSettings.setColor1(new Color(Integer.parseInt(color[0]), Integer.parseInt(color[1]), Integer.parseInt(color[2])));
                         commandEvent.reply("Successfully set the color.");
+                        playerSettingsHandler.updateUser(commandEvent.getAuthor(), playerSettings);
                         return;
                     }else{
                         commandEvent.reply("Follow this format: RRR:GGG:BBB");
@@ -62,6 +63,7 @@ public class PlayerSettingsCommand extends PlayerCommand {
                     if (color.length > 2) {
                         playerSettings.setColor2(new Color(Integer.parseInt(color[0]), Integer.parseInt(color[1]), Integer.parseInt(color[2])));
                         commandEvent.reply("Successfully set the color.");
+                        playerSettingsHandler.updateUser(commandEvent.getAuthor(), playerSettings);
                         return;
                     } else {
                         commandEvent.reply("Follow this format: RRR:GGG:BBB");
@@ -71,9 +73,11 @@ public class PlayerSettingsCommand extends PlayerCommand {
                 commandEvent.reply("Provide color...");
             }else if(args[0].equalsIgnoreCase("resetColor1")){
                     playerSettings.setColor1(Color.orange);
+                playerSettingsHandler.updateUser(commandEvent.getAuthor(), playerSettings);
                     commandEvent.reply("Reset the color.");
             }else if(args[0].equalsIgnoreCase("resetColor2")){
                 playerSettings.setColor2(Color.red);
+                playerSettingsHandler.updateUser(commandEvent.getAuthor(), playerSettings);
                 commandEvent.reply("Reset the color.");
             } else if(args[0].equalsIgnoreCase("setBackGround")){
                 if(args.length > 1){
@@ -86,6 +90,7 @@ public class PlayerSettingsCommand extends PlayerCommand {
                     }
                 }else{
                     playerSettings.setAvatarBackgroundImage(null);
+                    playerSettingsHandler.updateUser(commandEvent.getAuthor(), playerSettings);
                 }
             }else{
                 commandEvent.reply(getInfoMessage().build());

@@ -1,7 +1,5 @@
 package com.neutralplasma.virtusbot.storage.config;
 
-import com.neutralplasma.virtusbot.storage.config.Config;
-
 public class Info {
     private static final Config CONFIG = new Config();
     public static final String AUTHOR_ID = CONFIG.getValue("authorid");

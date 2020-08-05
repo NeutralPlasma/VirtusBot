@@ -1,7 +1,6 @@
 package com.neutralplasma.virtusbot.handlers.playerSettings;
 
 import com.google.gson.Gson;
-import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
 import com.neutralplasma.virtusbot.utils.TextUtil;
 import net.dv8tion.jda.api.entities.User;
@@ -23,19 +22,16 @@ public class PlayerSettingsHandler {
 
     public PlayerSettingsHandler(StorageHandler sql){
         this.sql = sql;
-
         try {
             sql.createTable("PlayerSettings", "userID TEXT, settings TEXT");
         }catch (SQLException error){
             error.printStackTrace();
         }
-
         try {
             cachePlayerSettings();
         }catch (SQLException error){
             error.printStackTrace();
         }
-
         pSettingsUpdater();
 
     }
@@ -57,6 +53,7 @@ public class PlayerSettingsHandler {
             syncSettings();
         }catch (Exception ignored){}
     };
+
 
     public void syncSettings() throws SQLException{
         HashMap<String, PlayerSettings> data = new HashMap<>(pSettings);
@@ -103,28 +100,20 @@ public class PlayerSettingsHandler {
     }
 
 
-    public PlayerSettings getUserSettings(User user){
-        return pSettings.get(user.getId());
-    }
-    public void updateUserSettings(User user, PlayerSettings playerSettings){
-        pSettings.put(user.getId(), playerSettings);
-    }
-    public void addUserSettings(User user, PlayerSettings playerSettings){
-        pSettings.put(user.getId(), playerSettings);
-    }
-
-
 
     public PlayerSettings getSettings(User user){
-        return getUserSettings(user);
+        return pSettings.get(user.getId());
     }
 
-    public void addUser(User user, PlayerSettings playerSettings){
-        addUserSettings(user, playerSettings);
-    }
 
+    /**
+     *
+     * @param user
+     * @param playerSettings
+     * Adds user if not present.
+     */
     public void updateUser(User user, PlayerSettings playerSettings){
-        updateUserSettings(user, playerSettings);
+        pSettings.put(user.getId(), playerSettings);
     }
 
 

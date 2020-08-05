@@ -2,8 +2,6 @@ package com.neutralplasma.virtusbot.handlers.playerLeveling;
 
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettings;
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler;
-import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
-import com.neutralplasma.virtusbot.storage.dataStorage.Storage;
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
 import com.neutralplasma.virtusbot.utils.GraphicUtil;
 import com.neutralplasma.virtusbot.utils.Resizer;
@@ -29,7 +27,6 @@ public class PlayerLeveling {
     private final Random random = new Random();
     private StorageHandler storage;
     private PlayerSettingsHandler playerSettingsHandler;
-    private final String defaultURL = "https://htmlcolorcodes.com/assets/images/html-color-codes-color-tutorials-hero-00e10b1f.jpg";
     private final ArrayList<String> blackListed = new ArrayList<>();
     private final String tableName = "LevelingData";
 
@@ -117,7 +114,7 @@ public class PlayerLeveling {
     /**
      * Caches all users into HashMap for fast access.
      *
-     * @throws SQLException if theres issue with SQL connection
+     * @throws SQLException if there's issue with SQL connection
      */
 
     public void cacheUsers() throws SQLException{
@@ -259,7 +256,7 @@ public class PlayerLeveling {
     public void sendInfoImage(User user, PlayerData data, TextChannel channel){
         Thread thread = new Thread(() -> {
             try {
-                String font = "Berlin Sans FB Demi Bold";
+                String font = "Berlin Sans FB Demi";
                 int height = 521;
                 int width = 1250;
                 boolean darkTheme = true;
@@ -332,7 +329,7 @@ public class PlayerLeveling {
 
                 //Level/exp text  + number
                 g2d.setColor(darkTheme ? Color.white : Color.darkGray);
-                g2d.setFont(new Font(font, Font.ITALIC, 40));
+                g2d.setFont(new Font(font, Font.PLAIN, 40));
                 g2d.drawString("Level:", 400, 90);
                 g2d.drawString("Experience:", 400, 210);
 
@@ -345,7 +342,7 @@ public class PlayerLeveling {
                 g2d.setPaint(primary);
                 g2d.fillArc(1006 - 220 / 2, 258 - 220 / 2, 220, 220, 270, (int) progressBar);
                 g2d.setColor(Color.white);
-                g2d.fillOval(1006 - 200 / 2, 258 - 200 / 2, 200, 200);
+                g2d.fillOval(1006 - 190 / 2, 258 - 190 / 2, 190, 190);
 
 
 
@@ -364,7 +361,7 @@ public class PlayerLeveling {
                 g2d.drawString(needed, (float) (1006.23 - (size / 2)), (float) 264.32 + (textSize / 4));
 
                 String text = "to go";
-                g2d.setFont(new Font(font, Font.ITALIC, (int) textSize));
+                g2d.setFont(new Font(font, Font.PLAIN, (int) textSize));
                 size = g2d.getFontMetrics().stringWidth(text);
                 g2d.drawString(text, (float) (1006.23 - (size / 2)), (float) 300.32 + (textSize / 4));
 
@@ -478,13 +475,6 @@ public class PlayerLeveling {
                 int size = g2d.getFontMetrics().stringWidth(level);
                 g2d.setPaint(primary);
                 g2d.drawString(level, (float) (1006.23 - (size / 2)),(float) 258.32 + (textSize/4));
-
-
-
-
-                //g2d.setColor(new Color(179, 179, 179));
-                //g2d.drawString(level, 485 - (size / 2), 160);
-
 
 
 

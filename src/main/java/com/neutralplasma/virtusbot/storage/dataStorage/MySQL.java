@@ -22,6 +22,7 @@ public class MySQL extends Storage{
 
         hikari = new HikariDataSource();
         hikari.setDataSourceClassName("com.mysql.cj.jdbc.MysqlDataSource");
+        hikari.setPoolName("Storage");
         hikari.setMaximumPoolSize(poolsize);
         hikari.setConnectionTimeout(timeout);
         hikari.addDataSourceProperty("serverName", Info.DATABASE_IP);

@@ -14,6 +14,7 @@ import com.neutralplasma.virtusbot.commands.general.HelpCommand;
 import com.neutralplasma.virtusbot.commands.general.SuggestCmd;
 import com.neutralplasma.virtusbot.commands.general.TestCommand;
 import com.neutralplasma.virtusbot.commands.owner.BlackListCommand;
+import com.neutralplasma.virtusbot.commands.owner.BotPowerCommand;
 import com.neutralplasma.virtusbot.commands.player.LevelCommand;
 import com.neutralplasma.virtusbot.commands.player.PlayerSettingsCommand;
 import com.neutralplasma.virtusbot.commands.ticket.CloseTicketCMD;
@@ -24,7 +25,6 @@ import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling;
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler;
 import com.neutralplasma.virtusbot.event.EventHandler;
 import com.neutralplasma.virtusbot.settings.NewSettingsManager;
-import com.neutralplasma.virtusbot.storage.config.Config;
 import com.neutralplasma.virtusbot.storage.config.Info;
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
 import com.neutralplasma.virtusbot.storage.locale.LocaleHandler;
@@ -45,9 +45,7 @@ public class VirtusBot {
             Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_MANAGE, Permission.MESSAGE_EXT_EMOJI,
             Permission.MANAGE_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK, Permission.NICKNAME_CHANGE};
 
-    //public final static String prefix = "*";
     public final static String prefix = Info.PREFIX;
-    private final static String levelingTable = "levelingdata";
     public static ArrayList<Command> commands = new ArrayList<>();
     public static StorageHandler storageHandler;
 
@@ -59,7 +57,7 @@ public class VirtusBot {
         Bot bot = new Bot(waiter);
         String version = OtherUtil.getCurrentVersion();
         AudioManager audioManager = new AudioManager();
-        Config config = new Config();
+
 
         storageHandler = new StorageHandler();
 
@@ -98,6 +96,7 @@ public class VirtusBot {
                 "Simple yet effective VirtusBOT (v"+version+")",
                 new String[]{"Made with <3, made for use."},
                 RECOMMENDED_PERMS);
+
         aboutCommand.setIsAuthor(false);
         aboutCommand.setReplacementCharacter("\uD83C\uDFB6");
         // SETTINGS COMING SQL BASED ONE
@@ -142,6 +141,7 @@ public class VirtusBot {
 
         // owner
         commands.add(new BlackListCommand());
+        commands.add(new BotPowerCommand(playerLeveling, playerSettingsHandler));
 
         // player
         commands.add(new LevelCommand(playerLeveling));

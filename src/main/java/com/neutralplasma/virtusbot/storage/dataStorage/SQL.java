@@ -32,7 +32,7 @@ public class SQL extends Storage {
 
         }
         HikariConfig config = new HikariConfig();
-        config.setPoolName("Crops");
+        config.setPoolName("Storage");
         config.setDriverClassName("org.sqlite.JDBC");
         config.setJdbcUrl("jdbc:sqlite:" + getPath() + "/" + database + ".db");
         config.setConnectionTestQuery("SELECT 1");
