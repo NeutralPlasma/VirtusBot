@@ -490,6 +490,6 @@ public class PlayerLeveling {
     }
 
     public long calcXpToAdd(){
-        return (random.nextInt(1) + 3) * ACTIVE_MULTIPLIER;
+        return (long) (random.nextInt(1) + 3) * ACTIVE_MULTIPLIER;
     }
 }

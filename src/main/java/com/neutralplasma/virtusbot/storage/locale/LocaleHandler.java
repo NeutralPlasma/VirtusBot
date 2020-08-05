@@ -31,7 +31,7 @@ public class LocaleHandler {
 
         try {
             sql.createTable("serverlocales",
-                    "guildID TEXT," +
+                    "guildID TEXT, " +
                     "localedata TEXT");
         }catch (SQLException error){
             error.printStackTrace();

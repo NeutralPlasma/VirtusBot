@@ -20,9 +20,9 @@ public class MoveToCommand extends AudioCommand {
         commandEvent.getMessage().delete().queue();
         String[] args = commandEvent.getArgs().split(" ");
         if(args.length > 0){
-            int position = Integer.parseInt(args[0]);
+            long position = Long.parseLong(args[0]);
             audioManager.forPlayingTrack(track -> {
-                track.setPosition(track.getPosition() + position * 1000);
+                track.setPosition(track.getPosition() + position * 1000L);
             },commandEvent.getGuild());
         }else{
             commandEvent.reply("Please provide all the args.");
