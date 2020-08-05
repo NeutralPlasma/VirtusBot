@@ -31,9 +31,9 @@ public class PlayerSettingsCommand extends PlayerCommand {
         if(args.length > 0){
             PlayerSettings playerSettings = playerSettingsHandler.getSettings(commandEvent.getAuthor());
             if(playerSettings  == null){
-                playerSettings = new PlayerSettings(false, null);
+                playerSettings = new PlayerSettings(false, null, Color.orange, Color.red);
             }
-            if(args[0].equalsIgnoreCase("enableDark")){
+            if(args[0].equalsIgnoreCase("toggleDark")){
                 playerSettings.setDarkTheme(!playerSettings.isDarkTheme());
                 if(playerSettings.isDarkTheme()){
                     commandEvent.reply("Enabled dark theme!");
@@ -43,6 +43,38 @@ public class PlayerSettingsCommand extends PlayerCommand {
                 playerSettingsHandler.updateUser(commandEvent.getAuthor(), playerSettings);
             } else if(args[0].equalsIgnoreCase("avatarBackGround")){
                 commandEvent.reply("URL: " + playerSettings.getAvatarBackgroundImage());
+            } else if(args[0].equalsIgnoreCase("setColor1")){
+                if(args.length > 1){
+                    String[] color = args[1].split(":");
+                    if(color.length > 2){
+                        playerSettings.setColor1(new Color(Integer.parseInt(color[0]), Integer.parseInt(color[1]), Integer.parseInt(color[2])));
+                        commandEvent.reply("Successfully set the color.");
+                        return;
+                    }else{
+                        commandEvent.reply("Follow this format: RRR:GGG:BBB");
+                        return;
+                    }
+                }
+                commandEvent.reply("Provide color...");
+            } else if(args[0].equalsIgnoreCase("setColor2")) {
+                if (args.length > 1) {
+                    String[] color = args[1].split(":");
+                    if (color.length > 2) {
+                        playerSettings.setColor2(new Color(Integer.parseInt(color[0]), Integer.parseInt(color[1]), Integer.parseInt(color[2])));
+                        commandEvent.reply("Successfully set the color.");
+                        return;
+                    } else {
+                        commandEvent.reply("Follow this format: RRR:GGG:BBB");
+                        return;
+                    }
+                }
+                commandEvent.reply("Provide color...");
+            }else if(args[0].equalsIgnoreCase("resetColor1")){
+                    playerSettings.setColor1(Color.orange);
+                    commandEvent.reply("Reset the color.");
+            }else if(args[0].equalsIgnoreCase("resetColor2")){
+                playerSettings.setColor2(Color.red);
+                commandEvent.reply("Reset the color.");
             } else if(args[0].equalsIgnoreCase("setBackGround")){
                 if(args.length > 1){
                     try {
@@ -66,8 +98,12 @@ public class PlayerSettingsCommand extends PlayerCommand {
     public EmbedBuilder getInfoMessage(){
         EmbedBuilder eb = new EmbedBuilder();
         eb.addField("Commands", "\n" +
-                "**enableDark** - Enables/Disables dark theme. \n" +
+                "**toggleDark** - Enables/Disables dark theme. \n" +
                 "**avatarBackGround** - Returns current avatar background url. \n" +
+                "**setColor1** <RRR:GGG:BBB> - Sets the first color. \n" +
+                "**setColor2** <RRR:GGG:BBB> - Sets the second color. \n" +
+                "**resetColor1**  - Resets the second color. \n" +
+                "**resetColor2** - Resets the second color. \n" +
                 "**setBackGround** <URL> - Sets new avatar background image.", false);
         eb.setColor(Color.MAGENTA);
         return eb;

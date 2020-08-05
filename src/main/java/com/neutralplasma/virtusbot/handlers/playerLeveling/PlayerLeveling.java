@@ -263,8 +263,17 @@ public class PlayerLeveling {
                 int height = 521;
                 int width = 1250;
                 boolean darkTheme = true;
-
-
+                PlayerSettings playerSettings = playerSettingsHandler.getSettings(user);
+                Color color1 = Color.orange;
+                Color color2 = Color.red;
+                if(playerSettings != null){
+                    if(playerSettings.getColor1() != null){
+                        color1 = playerSettings.getColor1();
+                    }
+                    if(playerSettings.getColor2() != null){
+                        color2 = playerSettings.getColor2();
+                    }
+                }
                 double progressBar = Math.max(Math.round(((data.getXp() - this.previous(data)) / (this.getNeededXP(data) - this.previous(data))) * 360), 0);
                 double progress = Math.max(Math.round(((data.getXp() - this.previous(data)) / (this.getNeededXP(data) - this.previous(data))) * 100), 0);
 
@@ -273,7 +282,7 @@ public class PlayerLeveling {
                 background = Resizer.AVERAGE.resize(background, width, height);
 
                 GradientPaint primary = new GradientPaint(
-                        0f, 0f, Color.ORANGE, width, 0f, new Color(0xFF2600));
+                        0f, 0f, color1, width, 0f, color2);
 
                 background = GraphicUtil.dye(background, primary);
 
@@ -339,16 +348,25 @@ public class PlayerLeveling {
                 g2d.fillOval(1006 - 200 / 2, 258 - 200 / 2, 200, 200);
 
 
-                // Level number
+
+
+                // Percent number.
                 float textSize = 45;
                 g2d.setFont(new Font(font, Font.BOLD, (int) textSize));
-
                 String level = progress + "%";
                 int size = g2d.getFontMetrics().stringWidth(level);
-
                 g2d.setPaint(primary);
-                g2d.drawString(level, (float) (1006.23 - (size / 2)), (float) 258.32 + (textSize / 4));
+                g2d.drawString(level, (float) (1006.23 - (size / 2)), (float) 230.32 + (textSize / 4));
+                // xp needed
+                g2d.setColor(Color.gray);
+                String needed = (this.getNeededXP(data) - data.getXp()) + "xp";
+                size = g2d.getFontMetrics().stringWidth(needed);
+                g2d.drawString(needed, (float) (1006.23 - (size / 2)), (float) 264.32 + (textSize / 4));
 
+                String text = "to go";
+                g2d.setFont(new Font(font, Font.ITALIC, (int) textSize));
+                size = g2d.getFontMetrics().stringWidth(text);
+                g2d.drawString(text, (float) (1006.23 - (size / 2)), (float) 300.32 + (textSize / 4));
 
                 g2d.dispose();
                 try {
@@ -383,7 +401,7 @@ public class PlayerLeveling {
                 background = Resizer.AVERAGE.resize(background, width, height);
 
                 GradientPaint primary = new GradientPaint(
-                        0f, 0f, Color.ORANGE, width, 0f, new Color(0xFF2600));
+                        0f, 0f, Color.ORANGE, width, 0f, new Color(0xFAF0EE));
 
                 background = GraphicUtil.dye(background, primary);
 
