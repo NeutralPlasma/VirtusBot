@@ -30,6 +30,8 @@ public class PlayerLeveling {
     private final ArrayList<String> blackListed = new ArrayList<>();
     private final String tableName = "LevelingData";
 
+    private int ACTIVE_MULTIPLIER = 1;
+
     public HashMap<String, PlayerData> users = new HashMap<>();
 
 
@@ -253,6 +255,13 @@ public class PlayerLeveling {
         }
     }
 
+    public int getACTIVE_MULTIPLIER() {
+        return ACTIVE_MULTIPLIER;
+    }
+    public void setACTIVE_MULTIPLIER(int ACTIVE_MULTIPLIER) {
+        this.ACTIVE_MULTIPLIER = ACTIVE_MULTIPLIER;
+    }
+
     public void sendInfoImage(User user, PlayerData data, TextChannel channel){
         Thread thread = new Thread(() -> {
             try {
@@ -384,47 +393,54 @@ public class PlayerLeveling {
     public void sendLevelUpMessage(User user, PlayerData data, TextChannel channel){
         Thread thread = new Thread(() -> {
             try {
-                String font = "Berlin Sans FB Demi Bold";
+                String font = "Berlin Sans FB Demi";
                 int height = 521;
                 int width = 1250;
                 boolean darkTheme = true;
 
-
-                double progressBar = Math.max(Math.round(((data.getXp() - this.previous(data)) / (this.getNeededXP(data) - this.previous(data))) * 360), 0);
-                double progress = Math.max(Math.round(((data.getXp() - this.previous(data)) / (this.getNeededXP(data) - this.previous(data))) * 100), 0);
-
-                URL url = new URL("http://images.sloempire.eu/Developing/Level-Banner-01.png");
-                BufferedImage background = ImageIO.read(url.openStream());
-                background = Resizer.AVERAGE.resize(background, width, height);
-
                 GradientPaint primary = new GradientPaint(
-                        0f, 0f, Color.ORANGE, width, 0f, new Color(0xFAF0EE));
+                        0f, 0f, Color.ORANGE, width, 0f, new Color(0xFF6600));
+                GradientPaint secondary = new GradientPaint(
+                        0f, 0f, new Color(0xFF4800), width, 0f, new Color(0xFF6600));
 
-                background = GraphicUtil.dye(background, primary);
+                URL url = new URL("http://images.sloempire.eu/Developing/LevelUp-Left-01.png");
+                BufferedImage left = ImageIO.read(url.openStream());
+                left = Resizer.AVERAGE.resize(left, width, height);
+                left = GraphicUtil.dye(left, primary);
 
-                url = new URL("http://images.sloempire.eu/Developing/level-banner-square-01.png");
-                BufferedImage levelSquare = ImageIO.read(url.openStream());
-                background = Resizer.AVERAGE.resize(background, width, height);
+                url = new URL("http://images.sloempire.eu/Developing/LevelUp-Right-01.png");
+                BufferedImage right = ImageIO.read(url.openStream());
+                right = Resizer.AVERAGE.resize(right, width, height);
+                right = GraphicUtil.dye(right, secondary);
+
+                url = new URL("http://images.sloempire.eu/Developing/levelup-overlay-01.png");
+                BufferedImage overlay = ImageIO.read(url.openStream());
+                overlay = Resizer.AVERAGE.resize(overlay, width, height);
+
+                url = new URL("http://images.sloempire.eu/Developing/levelup-numberoverlay-01.png");
+                BufferedImage overlaynumber = ImageIO.read(url.openStream());
+                overlaynumber = Resizer.AVERAGE.resize(overlaynumber, width, height);
+
+
+
+
 
 
                 url = new URL(user.getEffectiveAvatarUrl());
                 BufferedImage avatar = ImageIO.read(url.openStream());
-                avatar = Resizer.PROGRESSIVE_BILINEAR.resize(avatar, 400, 400);
+                avatar = Resizer.PROGRESSIVE_BILINEAR.resize(avatar, 300, 300);
+                avatar = TextUtil.makeRoundedCorner(avatar, avatar.getWidth(), true);
 
                 BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-
                 PlayerSettings settings = playerSettingsHandler.getSettings(user);
                 if(settings != null){
                     darkTheme = settings.isDarkTheme();
                 }
-
-
                 RenderingHints rh = new RenderingHints(
                         RenderingHints.KEY_TEXT_ANTIALIASING,
                         RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-
                 Graphics2D g2d = bufferedImage.createGraphics();
+
                 g2d.addRenderingHints(rh);
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 // Background
@@ -432,49 +448,27 @@ public class PlayerLeveling {
                 g2d.fillRect(0, 0, width, height);
 
                 // Background behind avatar
-                g2d.drawImage(background, 0, 0, width, height, 0, 0, background.getWidth(), background.getHeight(), null);
-                g2d.drawImage(levelSquare, 0, 0, width, height, 0, 0, background.getWidth(), background.getHeight(), null);
+                g2d.drawImage(left, 0, 0, width, height, 0, 0, left.getWidth(), left.getHeight(), null);
+                g2d.drawImage(right, 0, 0, width, height, 0, 0, right.getWidth(), right.getHeight(), null);
 
 
                 // Drawing avatar
-                g2d.drawImage(avatar, 30, 30, 350, 350, 0, 0, 400, 400, null);
-                // User name
-                g2d.setPaint(primary);
-                g2d.setFont(new Font(font, Font.BOLD, 50));
-                g2d.drawString(user.getName(), 30, 400);
-                g2d.setColor(Color.WHITE);
-                g2d.setFont(new Font(font, Font.BOLD, 40));
-                g2d.drawString("#" + user.getDiscriminator(), 30, 450);
+                //g2d.drawImage(avatar, 140, 110, 400, 400, 0, 0, 400, 400, null);
+                g2d.drawImage(avatar, 140, 110, null);
+                // Overlay
+                g2d.drawImage(overlay, 0, 0, width, height, 0, 0, overlay.getWidth(), overlay.getHeight(), null);
+                g2d.drawImage(overlaynumber, 0, 0, width, height, 0, 0, overlaynumber.getWidth(), overlaynumber.getHeight(), null);
+
+
 
                 //Level text  + number
                 g2d.setColor(Color.WHITE);
-                g2d.setFont(new Font(font, Font.ITALIC, 40));
-                g2d.drawString("Level:", 400, 90);
-                g2d.drawString("Experience:", 400, 210);
-
-                g2d.setFont(new Font(font, Font.BOLD, 70));
-                g2d.drawString(data.getLevel() + "", 400, 160);
-                g2d.drawString(data.getXp() + "", 400, 280);
-
-
-
-
-
-                // Progress circle
-                g2d.setPaint(primary);
-                g2d.fillArc(1006-220/2, 258-220/2, 220, 220, 270, (int) progressBar);
-                g2d.setColor(Color.white);
-                g2d.fillOval(1006-200/2, 258-200/2, 200, 200);
-
-
-
-                // Level number
-                float textSize = 45;
-                g2d.setFont(new Font(font, Font.BOLD, (int) textSize));
-                String level = progress + "%";
-                int size = g2d.getFontMetrics().stringWidth(level);
-                g2d.setPaint(primary);
-                g2d.drawString(level, (float) (1006.23 - (size / 2)),(float) 258.32 + (textSize/4));
+                g2d.setFont(new Font(font, Font.BOLD, 100));
+                g2d.drawString("Level Up!", 690, 120);
+                g2d.setFont(new Font(font, Font.BOLD, 340));
+                String levelText = data.getLevel() + "";
+                int size = g2d.getFontMetrics().stringWidth(levelText);
+                g2d.drawString(levelText, 899.98f - size/2, 293.74f + 100f);
 
 
 
@@ -496,6 +490,6 @@ public class PlayerLeveling {
     }
 
     public long calcXpToAdd(){
-        return random.nextInt(1) + 3;
+        return (random.nextInt(1) + 3) * ACTIVE_MULTIPLIER;
     }
 }
