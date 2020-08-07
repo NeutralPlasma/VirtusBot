@@ -1,204 +1,188 @@
-package com.neutralplasma.virtusbot.settings;
+package com.neutralplasma.virtusbot.settings
 
-import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
-import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
-import com.neutralplasma.virtusbot.utils.TextUtil;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
+import com.neutralplasma.virtusbot.utils.TextUtil.sendMessage
+import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.Role
+import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.entities.VoiceChannel
+import java.sql.SQLException
+import java.util.*
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-
-public class NewSettingsManager {
-    private StorageHandler storageHandler;
-    private HashMap<String, NewSettings> loadedSettings = new HashMap<>();
-
-    public NewSettingsManager(StorageHandler storageHandler){
-        this.storageHandler = storageHandler;
-
-        try {
-            storageHandler.createTable("ServerSettings",
-                    "settingName TEXT," +
-                    "guildID TEXT," +
-                    "data TEXT," +
-                    "type TEXT");
-        }catch (SQLException error){
-            TextUtil.sendMessage(error.getMessage());
+class NewSettingsManager(private val storageHandler: StorageHandler) {
+    private val loadedSettings = HashMap<String, NewSettings>()
+    fun addStringData(guild: Guild, settingName: String?, setting: String?): Boolean {
+        val settings = getSettings(guild)
+        return try {
+            setSetting(settingName, setting, guild.id, "ServerSettings", "STRING")
+            settings.addStringData(settingName!!, setting!!)
+            loadedSettings[guild.id] = settings
+            true
+        } catch (error: SQLException) {
+            error.printStackTrace()
+            false
         }
     }
 
-    public boolean addStringData(Guild guild, String settingName, String setting){
-        NewSettings settings = getSettings(guild);
-        try {
-            setSetting(settingName, setting, guild.getId(), "ServerSettings", "STRING");
-            settings.addStringData(settingName, setting);
-            loadedSettings.put(guild.getId(), settings);
-            return true;
-        }catch (SQLException error){
-            error.printStackTrace();
-            return false;
-        }
-    }
-
-
-    public TextChannel getTextChannel(Guild guild, String setting){
-        NewSettings settings = getSettings(guild);
-
-        TextChannel channel;
-        try {
-            if(!settings.getStringData(setting).equalsIgnoreCase("none")) {
-                channel = guild.getTextChannelById(settings.getStringData(setting));
+    fun getTextChannel(guild: Guild, setting: String?): TextChannel? {
+        val settings = getSettings(guild)
+        var channel: TextChannel?
+        return try {
+            if (!settings.getStringData(setting!!).equals("none", ignoreCase = true)) {
+                channel = guild.getTextChannelById(settings.getStringData(setting))
                 if (channel == null) {
-                    channel = guild.getTextChannelById(settings.getLongData(setting));
+                    channel = guild.getTextChannelById(settings.getLongData(setting))
                 }
-                return channel;
+                return channel
             }
-            return null;
-        }catch (NullPointerException error){
-            return null;
+            null
+        } catch (error: NullPointerException) {
+            null
         }
     }
 
-    public Role getRole(Guild guild, String setting){
-        NewSettings settings = getSettings(guild);
-
-        Role role;
-        try {
-            if (!settings.getStringData(setting).equalsIgnoreCase("none")) {
-                role = guild.getRoleById(settings.getStringData(setting));
+    fun getRole(guild: Guild, setting: String?): Role? {
+        val settings = getSettings(guild)
+        var role: Role?
+        return try {
+            if (!settings.getStringData(setting!!).equals("none", ignoreCase = true)) {
+                role = guild.getRoleById(settings.getStringData(setting))
                 if (role == null) {
-                    role = guild.getRoleById(settings.getLongData(setting));
+                    role = guild.getRoleById(settings.getLongData(setting))
                 }
-                return role;
+                return role
             }
-            return null;
-        }catch(NullPointerException error){
-            return null;
+            null
+        } catch (error: NullPointerException) {
+            null
         }
     }
 
-    public VoiceChannel getVoiceChannel(Guild guild, String setting){
-        NewSettings settings = getSettings(guild);
-        if(!settings.getStringData(setting).equalsIgnoreCase("none")) {
-            return guild.getVoiceChannelById(settings.getStringData(setting));
-        }
-        return null;
+    fun getVoiceChannel(guild: Guild, setting: String?): VoiceChannel? {
+        val settings = getSettings(guild)
+        return if (!settings.getStringData(setting!!).equals("none", ignoreCase = true)) {
+            guild.getVoiceChannelById(settings.getStringData(setting))
+        } else null
     }
 
-    public String getData(Guild guild, String setting){
-        NewSettings settings = getSettings(guild);
-
-        return settings.getStringData(setting);
+    fun getData(guild: Guild, setting: String?): String {
+        val settings = getSettings(guild)
+        return settings.getStringData(setting!!)
     }
 
-
-    public NewSettings getSettings(Guild guild){
-        NewSettings settings = loadedSettings.get(guild.toString());
-        if(settings == null){
-            settings = new NewSettings(new HashMap<>(), new HashMap<>(), new HashMap<>());
+    fun getSettings(guild: Guild): NewSettings {
+        var settings = loadedSettings[guild.toString()]
+        if (settings == null) {
+            settings = NewSettings(HashMap(), HashMap(), HashMap())
             try {
-                HashMap<String, String> dataset=  getAllSettings(guild.getId(), "ServerSettings");
-                for(String string : dataset.keySet()){
-                    settings.addStringData(string, dataset.get(string));
+                val dataset = getAllSettings(guild.id, "ServerSettings")
+                for (string in dataset.keys) {
+                    dataset[string]?.let { settings!!.addStringData(string, it) }
                 }
-            }catch (SQLException error){
-                settings = new NewSettings(new HashMap<>(), new HashMap<>(), new HashMap<>());
+            } catch (error: SQLException) {
+                settings = NewSettings(HashMap(), HashMap(), HashMap())
             }
         }
-        loadedSettings.put(guild.getId(), settings);
-        return settings;
+        loadedSettings[guild.id] = settings
+        return settings
     }
 
-    public void loadSettings(JDA jda){
-        for (Guild guild : jda.getGuilds()){
+    fun loadSettings(jda: JDA) {
+        for (guild in jda.guilds) {
             try {
-                HashMap<String, String> settings = getAllSettings(guild.getId(), "ServerSettings");
-                NewSettings settings1 = new NewSettings( settings, new HashMap<>(), new HashMap<>());
-                loadedSettings.put(guild.getId(), settings1);
-            }catch (SQLException error){
-                error.printStackTrace();
+                val settings = getAllSettings(guild.id, "ServerSettings")
+                val settings1 = NewSettings(settings, HashMap(), HashMap())
+                loadedSettings[guild.id] = settings1
+            } catch (error: SQLException) {
+                error.printStackTrace()
             }
         }
     }
-
 
     /*
         SQL STUFF
      */
-    public boolean removeSetting(String settingName, String guild, String tablename) {
-        try (Connection connection = storageHandler.getConnection()) {
-            String statement = "DELETE FROM " + tablename + " WHERE guildID = ? AND settingName = ?";
-
-            try (PreparedStatement preparedStatement = connection.prepareStatement(statement)) {
-                preparedStatement.setString(1, guild);
-                preparedStatement.setString(2, settingName);
-                preparedStatement.execute();
-                return true;
+    fun removeSetting(settingName: String?, guild: String?, tablename: String): Boolean {
+        try {
+            storageHandler.connection.use { connection ->
+                val statement = "DELETE FROM $tablename WHERE guildID = ? AND settingName = ?"
+                connection!!.prepareStatement(statement).use { preparedStatement ->
+                    preparedStatement.setString(1, guild)
+                    preparedStatement.setString(2, settingName)
+                    preparedStatement.execute()
+                    return true
+                }
             }
-
-        }catch (SQLException error){
-            return false;
+        } catch (error: SQLException) {
+            return false
         }
     }
 
-    public String getSetting(String guildID, String settingName, String tablename, String type) throws SQLException{
-        try(Connection connection = storageHandler.getConnection()){
-            String statement = "SELECT * FROM " + tablename + " WHERE guildID = ? AND settingName = ? AND type = ?";
-            try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
-                preparedStatement.setString(1, guildID);
-                preparedStatement.setString(2, settingName);
-                preparedStatement.setString(3, type);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                while(resultSet.next()){
-                    return resultSet.getString("data");
+    @Throws(SQLException::class)
+    fun getSetting(guildID: String?, settingName: String?, tablename: String, type: String?): String {
+        storageHandler.connection.use { connection ->
+            val statement = "SELECT * FROM $tablename WHERE guildID = ? AND settingName = ? AND type = ?"
+            connection!!.prepareStatement(statement).use { preparedStatement ->
+                preparedStatement.setString(1, guildID)
+                preparedStatement.setString(2, settingName)
+                preparedStatement.setString(3, type)
+                val resultSet = preparedStatement.executeQuery()
+                while (resultSet.next()) {
+                    return resultSet.getString("data")
                 }
             }
         }
-        return "ERROR";
+        return "ERROR"
     }
 
-    public HashMap<String,String> getAllSettings(String guildID, String tablename) throws SQLException{
-        HashMap<String, String> settings = new HashMap<>();
-        try(Connection connection = storageHandler.getConnection()){
-            String statement = "SELECT * FROM " + tablename + " WHERE guildID = ?";
-            try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
-                preparedStatement.setString(1, guildID);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                while(resultSet.next()){
+    @Throws(SQLException::class)
+    fun getAllSettings(guildID: String?, tablename: String): HashMap<String, String> {
+        val settings = HashMap<String, String>()
+        storageHandler.connection.use { connection ->
+            val statement = "SELECT * FROM $tablename WHERE guildID = ?"
+            connection!!.prepareStatement(statement).use { preparedStatement ->
+                preparedStatement.setString(1, guildID)
+                val resultSet = preparedStatement.executeQuery()
+                while (resultSet.next()) {
                     // To be done.
-                    settings.put(resultSet.getString("settingName"), resultSet.getString("data"));
+                    settings[resultSet.getString("settingName")] = resultSet.getString("data")
                 }
             }
         }
-        settings.put("TEST", "TEST2");
-        return settings;
+        settings["TEST"] = "TEST2"
+        return settings
     }
 
-    public boolean setSetting(String settingName, String setting ,String guild, String tablename, String type) throws SQLException{
-        if (!getSetting(guild, settingName, tablename, type).equals("ERROR")){
-            removeSetting(settingName, guild, tablename);
+    @Throws(SQLException::class)
+    fun setSetting(settingName: String?, setting: String?, guild: String?, tablename: String, type: String?): Boolean {
+        if (getSetting(guild, settingName, tablename, type) != "ERROR") {
+            removeSetting(settingName, guild, tablename)
         }
-
-        try(Connection connection = storageHandler.getConnection()) {
-            String statement = "INSERT INTO " +
+        storageHandler.connection.use { connection ->
+            val statement = "INSERT INTO " +
                     " " + tablename + " (data, guildID, settingName, type) " +
-                    "VALUES (?, ?, ?, ?)";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(statement)) {
-                preparedStatement.setString(1, setting);
-                preparedStatement.setString(2, guild);
-                preparedStatement.setString(3, settingName);
-                preparedStatement.setString(4, type);
-                preparedStatement.execute();
-                return true;
+                    "VALUES (?, ?, ?, ?)"
+            connection!!.prepareStatement(statement).use { preparedStatement ->
+                preparedStatement.setString(1, setting)
+                preparedStatement.setString(2, guild)
+                preparedStatement.setString(3, settingName)
+                preparedStatement.setString(4, type)
+                preparedStatement.execute()
+                return true
             }
         }
     }
 
+    init {
+        try {
+            storageHandler.createTable("ServerSettings",
+                    "settingName TEXT," +
+                            "guildID TEXT," +
+                            "data TEXT," +
+                            "type TEXT")
+        } catch (error: SQLException) {
+            sendMessage(error.message)
+        }
+    }
 }

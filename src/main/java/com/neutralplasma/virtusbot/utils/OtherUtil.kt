@@ -1,13 +1,8 @@
-package com.neutralplasma.virtusbot.utils;
+package com.neutralplasma.virtusbot.utils
 
-import com.neutralplasma.virtusbot.VirtusBot;
+import com.neutralplasma.virtusbot.VirtusBot
 
-public class OtherUtil {
-
-    public static String getCurrentVersion(){
-        if(VirtusBot.class.getPackage()!=null && VirtusBot.class.getPackage().getImplementationVersion()!=null)
-            return VirtusBot.class.getPackage().getImplementationVersion();
-        else
-            return "UNKNOWN";
-    }
+object OtherUtil {
+    val currentVersion: String
+        get() = if (VirtusBot::class.java.getPackage() != null && VirtusBot::class.java.getPackage().implementationVersion != null) VirtusBot::class.java.getPackage().implementationVersion else "UNKNOWN"
 }

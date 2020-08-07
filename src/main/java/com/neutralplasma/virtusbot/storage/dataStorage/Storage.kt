@@ -1,22 +1,17 @@
-package com.neutralplasma.virtusbot.storage.dataStorage;
+package com.neutralplasma.virtusbot.storage.dataStorage
 
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.sql.Connection
+import java.sql.SQLException
 
-public abstract class Storage {
+abstract class Storage {
+    open fun openConnection() {}
+    open fun closeConnection() {}
 
-    public void openConnection(){
-
-    }
-    public void closeConnection(){
-
-    }
-    public void createTable(String tableName, String format) throws SQLException {
-
+    @Throws(SQLException::class)
+    open fun createTable(tableName: String, format: String) {
     }
 
-    public Connection getConnection() throws SQLException{
-        return null;
-    }
-
+    @get:Throws(SQLException::class)
+    open val connection: Connection?
+        get() = null
 }

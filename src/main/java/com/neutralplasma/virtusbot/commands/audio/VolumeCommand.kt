@@ -1,27 +1,25 @@
-package com.neutralplasma.virtusbot.commands.audio;
+package com.neutralplasma.virtusbot.commands.audio
 
-import com.jagrosh.jdautilities.command.CommandEvent;
-import com.neutralplasma.virtusbot.audio.AudioManager;
-import com.neutralplasma.virtusbot.commands.AudioCommand;
+import com.jagrosh.jdautilities.command.CommandEvent
+import com.neutralplasma.virtusbot.audio.AudioManager
+import com.neutralplasma.virtusbot.commands.AudioCommand
 
-public class VolumeCommand extends AudioCommand {
-    private AudioManager audioManager;
-
-    public VolumeCommand(AudioManager audioManager){
-        this.name = "volume";
-        this.help = "Sets the bot volume";
-        this.aliases = new String[]{"volumeset"};
-        this.audioManager = audioManager;
+class VolumeCommand(audioManager: AudioManager) : AudioCommand() {
+    private val audioManager: AudioManager
+    override fun execute(commandEvent: CommandEvent) {
+        commandEvent.message.delete().queue()
+        val arg = commandEvent.args
+        val args = arg.split(" ".toRegex()).toTypedArray()
+        if (arg.length < 1) {
+            val volume = args[0].toInt()
+            audioManager.getMusicManager(commandEvent.guild).player.volume = volume
+        }
     }
 
-    @Override
-    protected void execute(CommandEvent commandEvent) {
-        commandEvent.getMessage().delete().queue();
-        String arg = commandEvent.getArgs();
-        String[] args = arg.split(" ");
-        if(arg.length() < 1){
-            int volume = Integer.parseInt(args[0]);
-            audioManager.getMusicManager(commandEvent.getGuild()).player.setVolume(volume);
-        }
+    init {
+        name = "volume"
+        help = "Sets the bot volume"
+        aliases = arrayOf("volumeset")
+        this.audioManager = audioManager
     }
 }

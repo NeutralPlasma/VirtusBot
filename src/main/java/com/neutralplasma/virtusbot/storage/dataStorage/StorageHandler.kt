@@ -1,33 +1,31 @@
-package com.neutralplasma.virtusbot.storage.dataStorage;
+package com.neutralplasma.virtusbot.storage.dataStorage
 
-import com.neutralplasma.virtusbot.storage.config.Info;
+import com.neutralplasma.virtusbot.storage.config.Info
+import java.sql.Connection
+import java.sql.SQLException
 
-import java.sql.Connection;
-import java.sql.SQLException;
+class StorageHandler {
+    var storage: Storage? = null
 
-public class StorageHandler {
-    Storage storage;
+    @get:Throws(SQLException::class)
+    val connection: Connection?
+        get() = storage?.connection
 
-    public StorageHandler(){
-        if(Info.USE_MYSQL){
-            storage = new MySQL();
-        }else{
-            storage = new SQL();
+    @Throws(SQLException::class)
+    fun createTable(tableName: String, format: String) {
+        storage!!.createTable(tableName, format)
+    }
+
+    fun closeConnection() {
+        storage!!.closeConnection()
+    }
+
+    init {
+        storage = if (Info.USE_MYSQL) {
+            MySQL()
+        } else {
+            SQL()
         }
-        storage.openConnection();
+        storage!!.openConnection()
     }
-
-    public Connection getConnection() throws SQLException {
-        return storage.getConnection();
-    }
-
-    public void createTable(String tableName, String format) throws SQLException {
-        storage.createTable(tableName, format);
-    }
-
-    public void closeConnection(){
-        storage.closeConnection();
-    }
-
-
 }

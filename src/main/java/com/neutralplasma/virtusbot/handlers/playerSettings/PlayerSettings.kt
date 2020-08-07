@@ -1,46 +1,38 @@
-package com.neutralplasma.virtusbot.handlers.playerSettings;
+package com.neutralplasma.virtusbot.handlers.playerSettings
 
-import org.apache.commons.codec.binary.Hex;
+import java.awt.Color
 
-import java.awt.*;
-
-public class PlayerSettings {
-    private String avatarBackgroundImage;
-    private boolean darkTheme;
-    private Color color1;
-    private Color color2;
-
-
-    public PlayerSettings(boolean darkTheme, String avatarBackground, Color color1, Color color2){
-        this.darkTheme = darkTheme;
-        this.avatarBackgroundImage = avatarBackground;
-        this.color1 = color1;
-        this.color2 = color2;
+class PlayerSettings(private var darkTheme: Boolean, private var avatarBackgroundImage: String, private var color1: Color, private var color2: Color) {
+    fun isDarkTheme(): Boolean {
+        return darkTheme
     }
 
-    public boolean isDarkTheme() {
-        return darkTheme;
-    }
-    public String getAvatarBackgroundImage() {
-        return avatarBackgroundImage;
-    }
-    public Color getColor1() {
-        return color1;
-    }
-    public Color getColor2() {
-        return color2;
+    fun getAvatarBackgroundImage(): String {
+        return avatarBackgroundImage
     }
 
-    public void setAvatarBackgroundImage(String avatarBackgroundImage) {
-        this.avatarBackgroundImage = avatarBackgroundImage;
+    fun getColor1(): Color? {
+        return color1
     }
-    public void setDarkTheme(boolean darkTheme) {
-        this.darkTheme = darkTheme;
+
+    fun getColor2(): Color? {
+        return color2
     }
-    public void setColor1(Color color1) {
-        this.color1 = color1;
+
+    fun setAvatarBackgroundImage(avatarBackgroundImage: String) {
+        this.avatarBackgroundImage = avatarBackgroundImage
     }
-    public void setColor2(Color color2) {
-        this.color2 = color2;
+
+    fun setDarkTheme(darkTheme: Boolean) {
+        this.darkTheme = darkTheme
     }
+
+    fun setColor1(color1: Color) {
+        this.color1 = color1
+    }
+
+    fun setColor2(color2: Color) {
+        this.color2 = color2
+    }
+
 }

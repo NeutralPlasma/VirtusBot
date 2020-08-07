@@ -13,26 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.neutralplasma.virtusbot.commands;
+package com.neutralplasma.virtusbot.commands
 
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
-import com.neutralplasma.virtusbot.VirtusBot;
+import com.jagrosh.jdautilities.command.Command
+import com.jagrosh.jdautilities.command.CommandEvent
+import com.neutralplasma.virtusbot.VirtusBot.blackList
+import java.util.function.Predicate
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public abstract class TicketCommand extends Command
-{
+abstract class TicketCommand : Command() {
+    override fun execute(commandEvent: CommandEvent) {}
 
-    public TicketCommand() {
-        this.guildOnly = true;
-        this.category = new Category("Ticket", event -> !VirtusBot.getBlackList().isBlackListed(event.getAuthor().getId()));
-    }
-
-    @Override
-    protected void execute(CommandEvent commandEvent) {
-
+    init {
+        guildOnly = true
+        this.category = Category("Ticket", Predicate { event: CommandEvent -> !blackList!!.isBlackListed(event.author.id) })
     }
 }

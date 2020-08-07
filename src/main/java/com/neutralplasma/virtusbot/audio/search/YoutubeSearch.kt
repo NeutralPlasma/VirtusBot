@@ -1,54 +1,26 @@
-package com.neutralplasma.virtusbot.audio.search;
+package com.neutralplasma.virtusbot.audio.search
 
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.services.youtube.YouTube;
-import com.google.api.services.youtube.model.SearchResult;
-import com.neutralplasma.virtusbot.storage.config.Info;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.services.youtube.YouTube
+import com.neutralplasma.virtusbot.storage.config.Info
+import java.net.MalformedURLException
+import java.net.URL
 
-import javax.annotation.Nullable;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.List;
-
-public class YoutubeSearch {
-    private final YouTube youTube;
-
-    public YoutubeSearch(){
-        YouTube temp = null;
-
-
-        try {
-            temp = new YouTube.Builder(
-                    GoogleNetHttpTransport.newTrustedTransport(),
-                    JacksonFactory.getDefaultInstance(),
-                    null
-            )
-                    .setApplicationName("Menudocs JDA tutorial bot")
-                    .build();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        youTube = temp;
-    }
-
-
-
-    public boolean isUrl(String input) {
-        try {
-            new URL(input);
-
-            return true;
-        } catch (MalformedURLException ignored) {
-            return false;
+class YoutubeSearch {
+    private val youTube: YouTube?
+    fun isUrl(input: String?): Boolean {
+        return try {
+            URL(input)
+            true
+        } catch (ignored: MalformedURLException) {
+            false
         }
     }
 
-    @Nullable
-    public String searchYoutube(String input) {
+    fun searchYoutube(input: String?): String? {
         try {
-            List<SearchResult> results = youTube.search()
+            val results = youTube!!.search()
                     .list("id,snippet")
                     .setQ(input)
                     .setMaxResults(1L)
@@ -56,18 +28,30 @@ public class YoutubeSearch {
                     .setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url)")
                     .setKey(Info.YOUTUBE_KEY)
                     .execute()
-                    .getItems();
-
+                    .items
             if (!results.isEmpty()) {
-                String videoId = results.get(0).getId().getVideoId();
-
-                return "https://www.youtube.com/watch?v=" + videoId;
+                val videoId = results[0].id.videoId
+                return "https://www.youtube.com/watch?v=$videoId"
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
+        return null
+    }
 
-        return null;
+    init {
+        var temp: YouTube? = null
+        try {
+            temp = YouTube.Builder(
+                    GoogleNetHttpTransport.newTrustedTransport(),
+                    JacksonFactory.getDefaultInstance(),
+                    null
+            )
+                    .setApplicationName("Menudocs JDA tutorial bot")
+                    .build()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        youTube = temp
     }
 }
-

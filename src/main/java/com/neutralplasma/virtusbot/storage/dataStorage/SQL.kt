@@ -1,53 +1,44 @@
-package com.neutralplasma.virtusbot.storage.dataStorage;
+package com.neutralplasma.virtusbot.storage.dataStorage
 
-import com.google.gson.Gson;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
+import com.google.gson.Gson
+import com.neutralplasma.virtusbot.utils.FileUtil.path
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
+import java.io.File
+import java.sql.Connection
+import java.sql.SQLException
 
-import java.io.File;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
-import static com.neutralplasma.virtusbot.utils.FileUtil.getPath;
-
-public class SQL extends Storage {
-    private HikariDataSource hikari;
-    private Gson gson = new Gson();
-
+class SQL : Storage() {
+    private var hikari: HikariDataSource? = null
+    private val gson = Gson()
 
     /**
      * Open SQL connection to file.
      */
-    @Override
-    public void openConnection() {
-
-        String database = "DataBase";
-        File file = new File(getPath() + database + ".db");
+    override fun openConnection() {
+        val database = "DataBase"
+        val file = File("$path$database.db")
         try {
             if (!file.exists()) {
-                file.createNewFile();
+                file.createNewFile()
             }
-        } catch (Exception error) {
-
+        } catch (error: Exception) {
         }
-        HikariConfig config = new HikariConfig();
-        config.setPoolName("Storage");
-        config.setDriverClassName("org.sqlite.JDBC");
-        config.setJdbcUrl("jdbc:sqlite:" + getPath() + "/" + database + ".db");
-        config.setConnectionTestQuery("SELECT 1");
-        config.setMaxLifetime(60000); // 60 Sec
-        config.setMaximumPoolSize(10); // 50 Connections (including idle connections)
-
-        hikari = new HikariDataSource(config);
+        val config = HikariConfig()
+        config.poolName = "Storage"
+        config.driverClassName = "org.sqlite.JDBC"
+        config.jdbcUrl = "jdbc:sqlite:$path/$database.db"
+        config.connectionTestQuery = "SELECT 1"
+        config.maxLifetime = 60000 // 60 Sec
+        config.maximumPoolSize = 10 // 50 Connections (including idle connections)
+        hikari = HikariDataSource(config)
     }
 
     /**
      * Close SQL connection.
      */
-    @Override
-    public void closeConnection() {
-        hikari.close();
+    override fun closeConnection() {
+        hikari!!.close()
     }
 
     /**
@@ -56,20 +47,15 @@ public class SQL extends Storage {
      * @param tableName table name.
      * @param format    Table format.
      */
-    @Override
-    public void createTable(String tableName, String format) throws SQLException {
-        try (Connection connection = hikari.getConnection()) {
-            String statement = "CREATE TABLE IF NOT EXISTS " + tableName + " (" + format + ");";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(statement)) {
-                preparedStatement.execute();
-            }
+    @Throws(SQLException::class)
+    override fun createTable(tableName: String, format: String) {
+        hikari!!.connection.use { connection ->
+            val statement = "CREATE TABLE IF NOT EXISTS $tableName ($format);"
+            connection.prepareStatement(statement).use { preparedStatement -> preparedStatement.execute() }
         }
     }
 
-    @Override
-    public Connection getConnection() throws SQLException {
-        return hikari.getConnection();
-
-    }
+    @get:Throws(SQLException::class)
+    override val connection: Connection?
+        get() = hikari!!.connection
 }
-

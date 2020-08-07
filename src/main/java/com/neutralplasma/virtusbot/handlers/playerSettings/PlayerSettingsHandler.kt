@@ -1,110 +1,77 @@
-package com.neutralplasma.virtusbot.handlers.playerSettings;
+package com.neutralplasma.virtusbot.handlers.playerSettings
 
-import com.google.gson.Gson;
-import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
-import com.neutralplasma.virtusbot.utils.TextUtil;
-import net.dv8tion.jda.api.entities.User;
+import com.google.gson.Gson
+import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
+import com.neutralplasma.virtusbot.utils.TextUtil.sendMessage
+import net.dv8tion.jda.api.entities.User
+import java.sql.SQLException
+import java.util.*
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
-
-public class PlayerSettingsHandler {
-
-    private StorageHandler sql;
-    private Gson gson = new Gson();
-
-    private HashMap<String, PlayerSettings> pSettings = new HashMap<>();
-
-    public PlayerSettingsHandler(StorageHandler sql){
-        this.sql = sql;
-        try {
-            sql.createTable("PlayerSettings", "userID TEXT, settings TEXT");
-        }catch (SQLException error){
-            error.printStackTrace();
-        }
-        try {
-            cachePlayerSettings();
-        }catch (SQLException error){
-            error.printStackTrace();
-        }
-        pSettingsUpdater();
-
+class PlayerSettingsHandler(private val sql: StorageHandler) {
+    private val gson = Gson()
+    private val pSettings = HashMap<String, PlayerSettings>()
+    fun pSettingsUpdater() {
+        val t = Timer()
+        t.scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                settingsUpdater.run()
+            }
+        }, 100, 60000)
     }
 
-    public void pSettingsUpdater(){
-        Timer t = new Timer();
-        t.scheduleAtFixedRate(new TimerTask() {
-
-            @Override
-            public void run() {
-                settingsUpdater.run();
-            }
-
-        }, 100, 60000);
+    var settingsUpdater = Runnable {
+        try {
+            syncSettings()
+        } catch (ignored: Exception) {
+        }
     }
 
-    Runnable settingsUpdater = () -> {
-        try {
-            syncSettings();
-        }catch (Exception ignored){}
-    };
-
-
-    public void syncSettings() throws SQLException{
-        HashMap<String, PlayerSettings> data = new HashMap<>(pSettings);
-
-        try(Connection connection = sql.getConnection()){
-            String statement = "DELETE FROM PlayerSettings;";
-            try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
-                preparedStatement.execute();
-            }
-            for(String userinfo : data.keySet()){
-                PlayerSettings udata = data.get(userinfo);
-                String settings = gson.toJson(udata);
-                String statement2 = "INSERT INTO PlayerSettings (" +
+    @Throws(SQLException::class)
+    fun syncSettings() {
+        val data = HashMap(pSettings)
+        sql.connection.use { connection ->
+            val statement = "DELETE FROM PlayerSettings;"
+            connection!!.prepareStatement(statement).use { preparedStatement -> preparedStatement.execute() }
+            for (userinfo in data.keys) {
+                val udata = data[userinfo]
+                val settings = gson.toJson(udata)
+                val statement2 = "INSERT INTO PlayerSettings (" +
                         "userID," +
-                        "settings) VALUES (?, ?)";
-                try(PreparedStatement preparedStatement = connection.prepareStatement(statement2)){
-                    preparedStatement.setString(1, userinfo);
-                    preparedStatement.setString(2, settings);
-                    preparedStatement.execute();
+                        "settings) VALUES (?, ?)"
+                connection.prepareStatement(statement2).use { preparedStatement ->
+                    preparedStatement.setString(1, userinfo)
+                    preparedStatement.setString(2, settings)
+                    preparedStatement.execute()
                 }
             }
         }
     }
 
-    public void cachePlayerSettings() throws SQLException{
-        try(Connection connection = sql.getConnection()){
-            String statement = "SELECT * from PlayerSettings;";
-            try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
-                int amount = 0;
-                ResultSet resultSet = preparedStatement.executeQuery();
-                while(resultSet.next()){
-                    amount++;
+    @Throws(SQLException::class)
+    fun cachePlayerSettings() {
+        sql.connection.use { connection ->
+            val statement = "SELECT * from PlayerSettings;"
+            connection!!.prepareStatement(statement).use { preparedStatement ->
+                var amount = 0
+                val resultSet = preparedStatement.executeQuery()
+                while (resultSet.next()) {
+                    amount++
                     try {
-                        String ID = resultSet.getString("userID");
-                        String settings = resultSet.getString("settings");
-                        PlayerSettings playerSettings = gson.fromJson(settings, PlayerSettings.class);
-
-                        pSettings.put(ID, playerSettings);
-                    }catch (Exception ignored) {}
+                        val ID = resultSet.getString("userID")
+                        val settings = resultSet.getString("settings")
+                        val playerSettings = gson.fromJson(settings, PlayerSettings::class.java)
+                        pSettings[ID] = playerSettings
+                    } catch (ignored: Exception) {
+                    }
                 }
-                TextUtil.sendMessage("Loaded: " + amount + " playerSettings from database.");
+                sendMessage("Loaded: $amount playerSettings from database.")
             }
         }
     }
 
-
-
-    public PlayerSettings getSettings(User user){
-        return pSettings.get(user.getId());
+    fun getSettings(user: User): PlayerSettings? {
+        return pSettings[user.id]
     }
-
 
     /**
      *
@@ -112,9 +79,21 @@ public class PlayerSettingsHandler {
      * @param playerSettings
      * Adds user if not present.
      */
-    public void updateUser(User user, PlayerSettings playerSettings){
-        pSettings.put(user.getId(), playerSettings);
+    fun updateUser(user: User, playerSettings: PlayerSettings) {
+        pSettings[user.id] = playerSettings
     }
 
-
+    init {
+        try {
+            sql.createTable("PlayerSettings", "userID TEXT, settings TEXT")
+        } catch (error: SQLException) {
+            error.printStackTrace()
+        }
+        try {
+            cachePlayerSettings()
+        } catch (error: SQLException) {
+            error.printStackTrace()
+        }
+        pSettingsUpdater()
+    }
 }

@@ -1,94 +1,51 @@
-package com.neutralplasma.virtusbot.utils;
+package com.neutralplasma.virtusbot.utils
 
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.entities.User
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.hooks.ListenerAdapter
+import java.util.*
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class AbstractChatUtil extends ListenerAdapter {
-    private static JDA jda ;
-
-    private static final List<String> registered = new ArrayList<>();
-
-    private User user;
-    private final ChatConfirmHandler handler;
-
-    private OnClose onClose = null;
-    private ListenerAdapter listener;
+class AbstractChatUtil(user: User, private val function: (ChatConfirmEvent) -> Unit, jda: JDA) : ListenerAdapter() {
+    var onClose: () -> Unit = {}
 
 
-    public AbstractChatUtil(User user, ChatConfirmHandler confirmHandler, JDA jda){
-        this.user = user;
-        this.handler = confirmHandler;
+    private var listener: ListenerAdapter? = null
 
-        initializeListeners(jda);
-        registered.add(user.getId());
-    }
+    private fun initializeListeners(jda: JDA) {
+        listener = object : ListenerAdapter() {
+            override fun onMessageReceived(event: MessageReceivedEvent) {
+                val user = event.author
+                if (!isRegistered(user)) return
+                unregister(user)
 
-    public static boolean isRegistered(User player) {
-        return registered.contains(player.getId());
-    }
+                val chatConfirmEvent = ChatConfirmEvent(user, event.message.contentRaw)
 
-    public static boolean unregister(User player) {
-        return registered.remove(player.getId());
-    }
-
-
-    public void initializeListeners(JDA jda){
-        this.listener = new ListenerAdapter() {
-            @Override
-            public void onMessageReceived(MessageReceivedEvent event) {
-                User user = event.getAuthor();
-                if (!AbstractChatUtil.isRegistered(user)) return;
-                AbstractChatUtil.unregister(user);
-
-                ChatConfirmEvent chatConfirmEvent = new ChatConfirmEvent(user, event.getMessage().getContentRaw());
-
-                handler.onChat(chatConfirmEvent);
-
-                if(onClose != null){
-                    onClose.onClose();
-                }
-                jda.removeEventListener(listener);
+                function(chatConfirmEvent)
+                onClose()
+                jda.removeEventListener(listener)
             }
-        };
-
-        jda.addEventListener(listener);
+        }
+        jda.addEventListener(listener)
     }
 
 
+    class ChatConfirmEvent(val user: User, val message: String)
 
-    public interface OnClose {
-        void onClose();
-    }
 
-    public void setOnClose(OnClose onClose) {
-        this.onClose = onClose;
-    }
-
-    public interface ChatConfirmHandler {
-        void onChat(ChatConfirmEvent event);
-    }
-
-    public class ChatConfirmEvent {
-
-        private final User user;
-        private final String message;
-
-        public ChatConfirmEvent(User user, String message) {
-            this.user = user;
-            this.message = message;
+    companion object {
+        private val registered: MutableList<String> = ArrayList()
+        fun isRegistered(player: User): Boolean {
+            return registered.contains(player.id)
         }
 
-        public User getUser() {
-            return user;
+        fun unregister(player: User): Boolean {
+            return registered.remove(player.id)
         }
+    }
 
-        public String getMessage() {
-            return message;
-        }
+    init {
+        initializeListeners(jda)
+        registered.add(user.id)
     }
 }

@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.neutralplasma.virtusbot.commands;
+package com.neutralplasma.virtusbot.commands
 
-import com.jagrosh.jdautilities.command.Command;
-import com.neutralplasma.virtusbot.VirtusBot;
-import net.dv8tion.jda.api.Permission;
+import com.jagrosh.jdautilities.command.Command
+import com.jagrosh.jdautilities.command.CommandEvent
+import com.neutralplasma.virtusbot.VirtusBot.blackList
+import net.dv8tion.jda.api.Permission
+import java.util.function.Predicate
 
-
-public abstract class AdminCommand extends Command {
-    public AdminCommand()
-    {
-        this.category = new Category("Admin", event -> {
-            if(VirtusBot.getBlackList().isBlackListed(event.getAuthor().getId())){
-                return false;
-            }
-            if(event.getAuthor().getId().equals(event.getClient().getOwnerId()))
-                return true;
-            if(event.getGuild()==null)
-                return true;
-            return event.getMember().hasPermission(Permission.MANAGE_SERVER);
-        });
-        this.guildOnly = true;
+abstract class AdminCommand : Command() {
+    init {
+        this.category = Category("Admin", Predicate { event: CommandEvent ->
+            blackList!!.isBlackListed(event.author.id)
+                    ||
+            event.author.id == event.client.ownerId
+                    ||
+            event.member.hasPermission(Permission.MANAGE_SERVER)
+        })
+        guildOnly = true
     }
 }

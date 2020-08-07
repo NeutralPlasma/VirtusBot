@@ -1,222 +1,194 @@
-package com.neutralplasma.virtusbot.audio;
+package com.neutralplasma.virtusbot.audio
 
-import com.neutralplasma.virtusbot.utils.TextUtil;
-import com.sedmelluq.discord.lavaplayer.filter.equalizer.EqualizerFactory;
-import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
-import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.VoiceChannel;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import com.neutralplasma.virtusbot.utils.TextUtil.formatTiming
+import com.sedmelluq.discord.lavaplayer.filter.equalizer.EqualizerFactory
+import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
+import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
+import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
+import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack
+import net.dv8tion.jda.api.EmbedBuilder
+import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.entities.VoiceChannel
+import net.dv8tion.jda.api.hooks.ListenerAdapter
+import net.dv8tion.jda.api.managers.AudioManager
+import java.awt.Color
+import java.util.*
+import java.util.concurrent.TimeUnit
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
+class AudioManager : ListenerAdapter() {
+    private val equalizer: EqualizerFactory
+    private val playerManager: AudioPlayerManager
+    private val musicManagers: MutableMap<Long, GuildMusicManager>
 
-public class AudioManager extends ListenerAdapter {
-
-    private final EqualizerFactory equalizer;
-    private static final float[] BASS_BOOST = { 0.2f, 0.15f, 0.1f, 0.05f, 0.0f, -0.05f, -0.1f, -0.1f, -0.1f, -0.1f, -0.1f,
-            -0.1f, -0.1f, -0.1f, -0.1f };
-
-    public AudioManager(){
-
-        this.musicManagers = new HashMap<>();
-
-        this.playerManager = new DefaultAudioPlayerManager();
-        this.equalizer = new EqualizerFactory();
-        AudioSourceManagers.registerRemoteSources(playerManager);
-        AudioSourceManagers.registerLocalSource(playerManager);
-    }
-
-    private final AudioPlayerManager playerManager;
-    private final Map<Long, GuildMusicManager> musicManagers;
-
-    private synchronized GuildMusicManager getGuildAudioPlayer(Guild guild) {
-        long guildId = Long.parseLong(guild.getId());
-        GuildMusicManager musicManager = musicManagers.get(guildId);
-
+    @Synchronized
+    private fun getGuildAudioPlayer(guild: Guild): GuildMusicManager {
+        val guildId = guild.id.toLong()
+        var musicManager = musicManagers[guildId]
         if (musicManager == null) {
-            musicManager = new GuildMusicManager(playerManager);
-            musicManager.player.setVolume(50);
-            musicManagers.put(guildId, musicManager);
+            musicManager = GuildMusicManager(playerManager)
+            musicManager.player.volume = 50
+            musicManagers[guildId] = musicManager
         }
-
-        guild.getAudioManager().setSendingHandler(musicManager.getSendHandler());
-        return musicManager;
+        guild.audioManager.sendingHandler = musicManager.sendHandler
+        return musicManager
     }
 
-    public void eqStart(Guild guild){
-        GuildMusicManager musicManager = getGuildAudioPlayer(guild);
-        musicManager.player.setFilterFactory(equalizer);
-        musicManager.player.setFrameBufferDuration(500);
+    fun eqStart(guild: Guild) {
+        val musicManager = getGuildAudioPlayer(guild)
+        musicManager.player.setFilterFactory(equalizer)
+        musicManager.player.setFrameBufferDuration(500)
     }
-    public void eqStop(Guild guild){
-        GuildMusicManager musicManager = getGuildAudioPlayer(guild);
-        for (int i = 0; i < BASS_BOOST.length; i++) {
-            equalizer.setGain(i, BASS_BOOST[i]);
+
+    fun eqStop(guild: Guild) {
+        val musicManager = getGuildAudioPlayer(guild)
+        for (i in BASS_BOOST.indices) {
+            equalizer.setGain(i, BASS_BOOST[i])
         }
-        musicManager.player.setFilterFactory(null);
+        musicManager.player.setFilterFactory(null)
     }
 
-    public void eqSet(Guild guild, String eq, float value){
-        if(eq.equalsIgnoreCase("HIGHBASS")) {
-            for (int i = 0; i < BASS_BOOST.length; i++) {
-                equalizer.setGain(i, BASS_BOOST[i] + value);
+    fun eqSet(guild: Guild?, eq: String, value: Float) {
+        if (eq.equals("HIGHBASS", ignoreCase = true)) {
+            for (i in BASS_BOOST.indices) {
+                equalizer.setGain(i, BASS_BOOST[i] + value)
             }
         }
-        if(eq.equalsIgnoreCase("LOWBASS")) {
-            for (int i = 0; i < BASS_BOOST.length; i++) {
-                equalizer.setGain(i, -BASS_BOOST[i] + value);
+        if (eq.equals("LOWBASS", ignoreCase = true)) {
+            for (i in BASS_BOOST.indices) {
+                equalizer.setGain(i, -BASS_BOOST[i] + value)
             }
         }
     }
 
-    public ArrayList<AudioTrack> getQueue(Guild guild){
-        GuildMusicManager musicManager = getGuildAudioPlayer(guild);
-        BlockingQueue<AudioTrack> queue = musicManager.scheduler.getQueue();
-        ArrayList<AudioTrack> queueList = new ArrayList<>();
-        for(AudioTrack track : queue){
-            queueList.add(track);
+    fun getQueue(guild: Guild): ArrayList<AudioTrack?> {
+        val musicManager = getGuildAudioPlayer(guild)
+        val queue = musicManager.scheduler.queue
+        val queueList = ArrayList<AudioTrack?>()
+        for (track in queue) {
+            queueList.add(track)
         }
-        return queueList;
+        return queueList
     }
 
-
-    public void shuffle(Guild guild){
-        GuildMusicManager musicManager = getGuildAudioPlayer(guild);
-        musicManager.scheduler.shuffle();
+    fun shuffle(guild: Guild) {
+        val musicManager = getGuildAudioPlayer(guild)
+        musicManager.scheduler.shuffle()
     }
 
-    public boolean repeat(Guild guild){
-        GuildMusicManager musicManager = getGuildAudioPlayer(guild);
-        return musicManager.scheduler.toggleRepeat();
+    fun repeat(guild: Guild): Boolean {
+        val musicManager = getGuildAudioPlayer(guild)
+        return musicManager.scheduler.toggleRepeat()
     }
 
-    public void loadAndPlay(final TextChannel channel, final String trackUrl, final VoiceChannel voiceChannel) {
-        GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-        musicManager.scheduler.setChannel(channel);
-        playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
-            @Override
-            public void trackLoaded(AudioTrack track) {
-                EmbedBuilder eb = new EmbedBuilder();
-                AudioTrackInfo info = track.getInfo();
-                eb.addField("Added to queue: ", "**" + info.title + "** - " + TextUtil.formatTiming(track.getDuration(), 3600000L), false);
-                eb.setColor(Color.magenta.brighter());
-                eb.setFooter("VirtusDevelops 2015-2020");
-                channel.sendMessage(eb.build()).queue(m -> {
-                    m.delete().queueAfter(15, TimeUnit.SECONDS);
-                });
-
-                play(channel.getGuild(), musicManager, track, voiceChannel);
+    fun loadAndPlay(channel: TextChannel, trackUrl: String, voiceChannel: VoiceChannel?) {
+        val musicManager = getGuildAudioPlayer(channel.guild)
+        musicManager.scheduler.setChannel(channel)
+        playerManager.loadItemOrdered(musicManager, trackUrl, object : AudioLoadResultHandler {
+            override fun trackLoaded(track: AudioTrack) {
+                val eb = EmbedBuilder()
+                val info = track.info
+                eb.addField("Added to queue: ", "**" + info.title + "** - " + formatTiming(track.duration), false)
+                eb.setColor(Color.magenta.brighter())
+                eb.setFooter("VirtusDevelops 2015-2020")
+                channel.sendMessage(eb.build()).queue { m: Message -> m.delete().queueAfter(15, TimeUnit.SECONDS) }
+                play(channel.guild, musicManager, track, voiceChannel)
             }
 
-            @Override
-            public void playlistLoaded(AudioPlaylist playlist) {
-                EmbedBuilder eb = new EmbedBuilder();
-
-                int maxsize = 200;
-                int currentsize = 0;
-                StringBuilder builder = new StringBuilder();
-                for(AudioTrack track : playlist.getTracks()){
-                    play(channel.getGuild(), musicManager, track, voiceChannel);
-                    currentsize++;
-                    AudioTrackInfo info = track.getInfo();
-                    if(currentsize < 10) {
-                        builder.append("**").append(info.title).append("** - ").append(TextUtil.formatTiming(info.length, 3600000L)).append("\n");
+            override fun playlistLoaded(playlist: AudioPlaylist) {
+                val eb = EmbedBuilder()
+                val maxsize = 200
+                var currentsize = 0
+                val builder = StringBuilder()
+                for (track in playlist.tracks) {
+                    play(channel.guild, musicManager, track, voiceChannel)
+                    currentsize++
+                    val info = track.info
+                    if (currentsize < 10) {
+                        builder.append("**").append(info.title).append("** - ").append(formatTiming(info.length)).append("\n")
                     }
-                    if(currentsize >= maxsize){
-                        break;
+                    if (currentsize >= maxsize) {
+                        break
                     }
                 }
-                if(currentsize > 10){
-                    builder.append("and ").append(currentsize - 10).append(" more...");
+                if (currentsize > 10) {
+                    builder.append("and ").append(currentsize - 10).append(" more...")
                 }
-                eb.addField("Loaded tracks: ", builder.toString(), false);
-                eb.setFooter("VirtusDevelops 2015-2020");
-                eb.setColor(Color.magenta.brighter());
-                channel.sendMessage(eb.build()).queue(m -> {
-                    m.delete().queueAfter(30, TimeUnit.SECONDS);
-                });
+                eb.addField("Loaded tracks: ", builder.toString(), false)
+                eb.setFooter("VirtusDevelops 2015-2020")
+                eb.setColor(Color.magenta.brighter())
+                channel.sendMessage(eb.build()).queue { m: Message -> m.delete().queueAfter(30, TimeUnit.SECONDS) }
 
                 //channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")").queue();
 
                 //play(channel.getGuild(), musicManager, firstTrack, voiceChannel);
             }
 
-            @Override
-            public void noMatches() {
-
-                EmbedBuilder eb = new EmbedBuilder();
-                eb.addField("Error", "Could not find any song by that name. `" + trackUrl + "`", false);
-                eb.setFooter("VirtusDevelops 2015-2020");
-                channel.sendMessage(eb.build()).queue(m -> {
-                    m.delete().queueAfter(15, TimeUnit.SECONDS);
-                });
+            override fun noMatches() {
+                val eb = EmbedBuilder()
+                eb.addField("Error", "Could not find any song by that name. `$trackUrl`", false)
+                eb.setFooter("VirtusDevelops 2015-2020")
+                channel.sendMessage(eb.build()).queue { m: Message -> m.delete().queueAfter(15, TimeUnit.SECONDS) }
             }
 
-            @Override
-            public void loadFailed(FriendlyException exception) {
-                EmbedBuilder eb = new EmbedBuilder();
-                eb.addField("Error", "Could not play this song.", false);
-                eb.setFooter("VirtusDevelops 2015-2020");
-                channel.sendMessage(eb.build()).queue(m -> {
-                    m.delete().queueAfter(15, TimeUnit.SECONDS);
-                });
+            override fun loadFailed(exception: FriendlyException) {
+                val eb = EmbedBuilder()
+                eb.addField("Error", "Could not play this song.", false)
+                eb.setFooter("VirtusDevelops 2015-2020")
+                channel.sendMessage(eb.build()).queue { m: Message -> m.delete().queueAfter(15, TimeUnit.SECONDS) }
             }
-        });
+        })
     }
 
-    public void play(Guild guild, GuildMusicManager musicManager, AudioTrack track, VoiceChannel voiceChannel) {
-        connectToFirstVoiceChannel(guild.getAudioManager(), voiceChannel);
-        musicManager.scheduler.queue(track);
+    fun play(guild: Guild, musicManager: GuildMusicManager, track: AudioTrack?, voiceChannel: VoiceChannel?) {
+        connectToFirstVoiceChannel(guild.audioManager, voiceChannel)
+        musicManager.scheduler.queue(track)
     }
 
-    public GuildMusicManager getMusicManager(Guild guild){
-        return getGuildAudioPlayer(guild);
+    fun getMusicManager(guild: Guild): GuildMusicManager {
+        return getGuildAudioPlayer(guild)
     }
 
-    public void clearList(Guild guild){
-        GuildMusicManager musicManager = getGuildAudioPlayer(guild);
-        musicManager.scheduler.clearQueue();
-        guild.getAudioManager().closeAudioConnection();
-
+    fun clearList(guild: Guild) {
+        val musicManager = getGuildAudioPlayer(guild)
+        musicManager.scheduler.clearQueue()
+        guild.audioManager.closeAudioConnection()
     }
 
-    public void skipTrack(TextChannel channel) {
-        GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-        musicManager.scheduler.nextTrack();
-
-        channel.sendMessage("**Skipping to next song...**").queue(m -> {
-            m.delete().queueAfter(15, TimeUnit.SECONDS);
-        });
+    fun skipTrack(channel: TextChannel) {
+        val musicManager = getGuildAudioPlayer(channel.guild)
+        musicManager.scheduler.nextTrack()
+        channel.sendMessage("**Skipping to next song...**").queue { m: Message -> m.delete().queueAfter(15, TimeUnit.SECONDS) }
     }
 
-    public void forPlayingTrack(TrackOperation operation, Guild guild) {
-        GuildMusicManager musicManager = getGuildAudioPlayer(guild);
-        AudioTrack track = musicManager.player.getPlayingTrack();
-
+    fun forPlayingTrack(operation: (AudioTrack) -> Unit, guild: Guild) {
+        val musicManager = getGuildAudioPlayer(guild)
+        val track = musicManager.player.playingTrack
         if (track != null) {
-            operation.execute(track);
+            operation(track)
         }
     }
 
-
-
-    private void connectToFirstVoiceChannel(net.dv8tion.jda.api.managers.AudioManager audioManager, VoiceChannel voiceChannel) {
-        if (!audioManager.isConnected() && !audioManager.isAttemptingToConnect()) {
-            audioManager.openAudioConnection(voiceChannel);
+    private fun connectToFirstVoiceChannel(audioManager: AudioManager, voiceChannel: VoiceChannel?) {
+        if (!audioManager.isConnected) {
+            audioManager.openAudioConnection(voiceChannel)
         }
     }
 
+    companion object {
+        private val BASS_BOOST = floatArrayOf(0.2f, 0.15f, 0.1f, 0.05f, 0.0f, -0.05f, -0.1f, -0.1f, -0.1f, -0.1f, -0.1f,
+                -0.1f, -0.1f, -0.1f, -0.1f)
+    }
+
+    init {
+        musicManagers = HashMap()
+        playerManager = DefaultAudioPlayerManager()
+        equalizer = EqualizerFactory()
+        AudioSourceManagers.registerRemoteSources(playerManager)
+        AudioSourceManagers.registerLocalSource(playerManager)
+    }
 }

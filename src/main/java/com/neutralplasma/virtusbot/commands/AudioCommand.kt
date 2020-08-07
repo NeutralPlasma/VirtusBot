@@ -1,20 +1,15 @@
-package com.neutralplasma.virtusbot.commands;
+package com.neutralplasma.virtusbot.commands
 
-import com.jagrosh.jdautilities.command.Command;
-import com.neutralplasma.virtusbot.VirtusBot;
-import net.dv8tion.jda.api.Permission;
+import com.jagrosh.jdautilities.command.Command
+import com.jagrosh.jdautilities.command.CommandEvent
+import com.neutralplasma.virtusbot.VirtusBot.blackList
+import java.util.function.Predicate
 
-public abstract class AudioCommand extends Command {
-
-    public AudioCommand()
-    {
-        this.category = new Category("Music", event -> {
-            if(VirtusBot.getBlackList().isBlackListed(event.getAuthor().getId())){
-                return false;
-            }
-            return true;
-        });
-        this.guildOnly = true;
+abstract class AudioCommand : Command() {
+    init {
+        this.category = Category("Music", label@ Predicate { event: CommandEvent ->
+            !blackList!!.isBlackListed(event.author.id)
+        })
+        guildOnly = true
     }
-
 }

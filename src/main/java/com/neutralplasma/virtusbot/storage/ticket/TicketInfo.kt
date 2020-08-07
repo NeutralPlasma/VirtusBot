@@ -1,22 +1,11 @@
-package com.neutralplasma.virtusbot.storage.ticket;
+package com.neutralplasma.virtusbot.storage.ticket
 
-public class TicketInfo {
+class TicketInfo(userID: String, channelID: String) {
+    var userID = ""
+    var channelID = ""
 
-    public String userid = "";
-    public String channelID = "";
-
-    public TicketInfo(String userid, String channelID){
-        this.userid = userid;
-        this.channelID = channelID;
+    init {
+        this.userID = userID
+        this.channelID = channelID
     }
-
-
-    public String getUserid(){
-        return this.userid;
-    }
-
-    public String getChannelID(){
-        return this.channelID;
-    }
-
 }

@@ -1,97 +1,76 @@
-package com.neutralplasma.virtusbot.event;
+package com.neutralplasma.virtusbot.event
 
-import com.neutralplasma.virtusbot.commands.ticket.CreateTicketCMD;
-import com.neutralplasma.virtusbot.commands.ticket.DeleteTicketCMD;
-import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling;
-import com.neutralplasma.virtusbot.settings.NewSettingsManager;
-import com.neutralplasma.virtusbot.storage.locale.LocaleHandler;
-import com.neutralplasma.virtusbot.storage.ticket.TicketInfo;
-import com.neutralplasma.virtusbot.storage.ticket.TicketStorage;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.ReadyEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
-import net.dv8tion.jda.api.hooks.EventListener;
+import com.neutralplasma.virtusbot.commands.ticket.CreateTicketCMD
+import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling
+import com.neutralplasma.virtusbot.settings.NewSettingsManager
+import com.neutralplasma.virtusbot.storage.locale.LocaleHandler
+import net.dv8tion.jda.api.EmbedBuilder
+import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.entities.ChannelType
+import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.events.GenericEvent
+import net.dv8tion.jda.api.events.ReadyEvent
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
+import net.dv8tion.jda.api.hooks.EventListener
+import java.awt.Color
 
-import java.awt.*;
-
-public class EventHandler implements EventListener {
-    private NewSettingsManager newSettingsManager;
-    private CreateTicketCMD createTicketCMD;
-    private LocaleHandler localeHandler;
-    private PlayerLeveling playerLeveling;
-    private boolean setuped = false;
-
-
-    public EventHandler(NewSettingsManager newSettingsManager, CreateTicketCMD createTicketCMD,
-                        LocaleHandler localeHandler, PlayerLeveling playerLeveling){
-        this.newSettingsManager = newSettingsManager;
-        this.createTicketCMD = createTicketCMD;
-        this.localeHandler = localeHandler;
-        this.playerLeveling = playerLeveling;
-    }
-
-    @Override
-    public  void onEvent(GenericEvent gevent){
+class EventHandler(private val newSettingsManager: NewSettingsManager, private val createTicketCMD: CreateTicketCMD,
+                   private val localeHandler: LocaleHandler, private val playerLeveling: PlayerLeveling) : EventListener {
+    private var setuped = false
+    override fun onEvent(gevent: GenericEvent) {
         // ADD REACTION TO MESSAGE EVENT
-        if (gevent instanceof MessageReactionAddEvent) {
-            MessageReactionAddEvent event = (MessageReactionAddEvent) gevent;
-            if (event.getUser().isBot()) {
-                return;
+        if (gevent is MessageReactionAddEvent) {
+            val event = gevent
+            if (event.user!!.isBot) {
+                return
             }
-            MessageReaction messageReaction = event.getReaction();
-            MessageReaction.ReactionEmote emote = messageReaction.getReactionEmote();
+            val messageReaction = event.reaction
+            val emote = messageReaction.reactionEmote
             //TextUtil.sendMessage(emote.getName());
-            if (emote.getName().equalsIgnoreCase("\uD83D\uDCAC")) {
-                if (event.getChannel() == newSettingsManager.getTextChannel(event.getGuild(), "TICKET_CHANNEL")) {
-                    messageReaction.removeReaction(event.getUser()).queue();
-                    createTicketCMD.createTicket(event.getMember(), event.getGuild());
+            if (emote.name.equals("\uD83D\uDCAC", ignoreCase = true)) {
+                if (event.channel === newSettingsManager.getTextChannel(event.guild, "TICKET_CHANNEL")) {
+                    messageReaction.removeReaction(event.user!!).queue()
+                    createTicketCMD.createTicket(event.member!!, event.guild)
                 }
             }
             // MESSAGE REACTION EVENT END
-
-        }else if (gevent instanceof MessageReceivedEvent) {
-            MessageReceivedEvent event = (MessageReceivedEvent) gevent;
-            Member member = event.getMember();
-            Message message = event.getMessage();
-
-            if(event.isFromType(ChannelType.TEXT)){
-                if(message.getContentRaw().contains("https://discord.gg/") && !member.hasPermission(Permission.MANAGE_SERVER)){
-                    sendServerLog(event.getGuild(), message, member);
-                    message.delete().queue();
+        } else if (gevent is MessageReceivedEvent) {
+            val event = gevent
+            val member = event.member
+            val message = event.message
+            if (event.isFromType(ChannelType.TEXT)) {
+                if (message.contentRaw.contains("https://discord.gg/") && !member!!.hasPermission(Permission.MANAGE_SERVER)) {
+                    sendServerLog(event.guild, message, member)
+                    message.delete().queue()
                 }
-
-                if (event.getMessage().isWebhookMessage() || event.getMember().getUser().isBot()){
-                    return;
+                if (event.message.isWebhookMessage || event.member!!.user.isBot) {
+                    return
                 }
-                playerLeveling.addXp(event.getMember().getUser(), event.getGuild(), event.getTextChannel());
+                playerLeveling.addXp(event.member!!.user, event.guild, event.textChannel)
             }
-        }else if (gevent instanceof ReadyEvent){
-            if(!setuped) {
-                localeHandler.setup();
-                setuped = true;
+        } else if (gevent is ReadyEvent) {
+            if (!setuped) {
+                localeHandler.setup()
+                setuped = true
             }
         }
     }
 
-
-
-    public void sendServerLog(Guild guild, Message message, Member member){
-        TextChannel channel = newSettingsManager.getTextChannel(guild, "LogChannel");
-        EmbedBuilder eb = new EmbedBuilder();
-        eb.setColor(Color.magenta.brighter());
-        eb.setTitle("Opozorilo!");
-        eb.addField("Informacije", "**Uporabnik:** " +
-               member.getEffectiveName() +
-                "\n**Text: **" + message.getContentRaw() +
-                "\n**Pogovor: **" + message.getChannel().getName() +
-                "\n**ID sporočila: **" + message.getId(), false);
-        if(channel != null){
-            channel.sendMessage(eb.build()).queue();
-        }
+    fun sendServerLog(guild: Guild?, message: Message, member: Member?) {
+        val channel = newSettingsManager.getTextChannel(guild!!, "LogChannel")
+        val eb = EmbedBuilder()
+        eb.setColor(Color.magenta.brighter())
+        eb.setTitle("Opozorilo!")
+        eb.addField("Informacije", """
+     **Uporabnik:** ${member!!.effectiveName}
+     **Text: **${message.contentRaw}
+     **Pogovor: **${message.channel.name}
+     **ID sporočila: **${message.id}
+     """.trimIndent(), false)
+        channel?.sendMessage(eb.build())?.queue()
     }
 
 }

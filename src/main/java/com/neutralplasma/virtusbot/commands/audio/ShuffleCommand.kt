@@ -1,32 +1,21 @@
-package com.neutralplasma.virtusbot.commands.audio;
+package com.neutralplasma.virtusbot.commands.audio
 
-import com.jagrosh.jdautilities.command.CommandEvent;
-import com.neutralplasma.virtusbot.audio.AudioManager;
-import com.neutralplasma.virtusbot.audio.search.YoutubeSearch;
-import com.neutralplasma.virtusbot.commands.AudioCommand;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import com.jagrosh.jdautilities.command.CommandEvent
+import com.neutralplasma.virtusbot.audio.AudioManager
+import com.neutralplasma.virtusbot.commands.AudioCommand
 
-import java.util.Collection;
-import java.util.Collections;
-
-public class ShuffleCommand extends AudioCommand {
-
-    private AudioManager audioManager;
-
-    public ShuffleCommand(AudioManager audioManager){
-        this.name = "shuffle";
-        this.help = "Shuffles current queue.";
-        this.aliases = new String[]{"shuff", "queueshuffle"};
-        this.audioManager = audioManager;
+class ShuffleCommand(audioManager: AudioManager) : AudioCommand() {
+    private val audioManager: AudioManager
+    override fun execute(commandEvent: CommandEvent) {
+        commandEvent.message.delete().queue()
+        audioManager.shuffle(commandEvent.guild)
+        commandEvent.reply("**Shuffled queue!**")
     }
 
-    @Override
-    protected void execute(CommandEvent commandEvent) {
-        commandEvent.getMessage().delete().queue();
-
-        audioManager.shuffle(commandEvent.getGuild());
-
-        commandEvent.reply("**Shuffled queue!**");
-
+    init {
+        name = "shuffle"
+        help = "Shuffles current queue."
+        aliases = arrayOf("shuff", "queueshuffle")
+        this.audioManager = audioManager
     }
 }

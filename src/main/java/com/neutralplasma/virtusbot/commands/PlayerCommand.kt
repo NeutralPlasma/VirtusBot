@@ -1,14 +1,13 @@
-package com.neutralplasma.virtusbot.commands;
+package com.neutralplasma.virtusbot.commands
 
-import com.jagrosh.jdautilities.command.Command;
-import com.neutralplasma.virtusbot.VirtusBot;
+import com.jagrosh.jdautilities.command.Command
+import com.jagrosh.jdautilities.command.CommandEvent
+import com.neutralplasma.virtusbot.VirtusBot.blackList
+import java.util.function.Predicate
 
-public abstract class PlayerCommand extends Command {
-
-    public PlayerCommand()
-    {
-        this.category = new Category("Player", event -> !VirtusBot.getBlackList().isBlackListed(event.getAuthor().getId()));
-        this.guildOnly = true;
+abstract class PlayerCommand : Command() {
+    init {
+        this.category = Category("Player", Predicate { event: CommandEvent -> !blackList!!.isBlackListed(event.author.id) })
+        guildOnly = true
     }
-
 }

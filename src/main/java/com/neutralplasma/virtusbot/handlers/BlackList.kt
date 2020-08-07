@@ -1,107 +1,94 @@
-package com.neutralplasma.virtusbot.handlers;
+package com.neutralplasma.virtusbot.handlers
 
-import com.neutralplasma.virtusbot.storage.dataStorage.SQL;
-import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
-import com.neutralplasma.virtusbot.utils.TextUtil;
+import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
+import com.neutralplasma.virtusbot.utils.TextUtil.sendMessage
+import java.sql.SQLException
+import java.util.*
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
-
-public class BlackList {
-    private StorageHandler storageHandler;
-    private final String TableName = "BlackList";
-    private ArrayList<String> blackList = new ArrayList<>();
-
-    public BlackList(StorageHandler storageHandler){
-        this.storageHandler = storageHandler;
-
-        try{
-            storageHandler.createTable(TableName, "UserID TEXT");
-        }catch (SQLException error){
-            error.printStackTrace();
-        }
-
-        try{
-            cacheBlackList();
-        }catch (SQLException error){
-            error.printStackTrace();
-        }
-
-        blackListUpdater();
-
+class BlackList(private val storageHandler: StorageHandler) {
+    private val TableName = "BlackList"
+    private val blackList = ArrayList<String>()
+    fun isBlackListed(userID: String?): Boolean {
+        return blackList.contains(userID)
     }
 
-    public boolean isBlackListed(String userID){
-        return blackList.contains(userID);
-    }
-
-    public void addToBlackList(String userID){
-        if(!isBlackListed(userID)){
-            blackList.add(userID);
-        }
-    }
-    public void removeFromBlackList(String userID){
-        if(isBlackListed(userID)){
-            blackList.remove(userID);
+    fun addToBlackList(userID: String) {
+        if (!isBlackListed(userID)) {
+            blackList.add(userID)
         }
     }
 
-    public void blackListUpdater(){
-        Timer t = new Timer();
-        t.scheduleAtFixedRate(new TimerTask() {
+    fun removeFromBlackList(userID: String?) {
+        if (isBlackListed(userID)) {
+            blackList.remove(userID)
+        }
+    }
 
-            @Override
-            public void run() {
-                syncer.run();
+    fun blackListUpdater() {
+        val t = Timer()
+        t.scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                syncer.run()
             }
-
-        }, 100, 60000);
+        }, 100, 60000)
     }
 
-    Runnable syncer = () -> {
+    var syncer = Runnable {
         try {
-            syncBlackList();
-        }catch (Exception ignored){}
-    };
+            syncBlackList()
+        } catch (ignored: Exception) {
+        }
+    }
 
-    public void syncBlackList() throws SQLException{
-        List<String> data = new ArrayList<>(blackList);
-
-        try(Connection connection = storageHandler.getConnection()){
-            String statement = "DELETE FROM "+ TableName + ";";
-            try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
-                preparedStatement.execute();
-            }
-            for(String userinfo : data){
-                String statement2 = "INSERT INTO " + TableName + " (" +
+    @Throws(SQLException::class)
+    fun syncBlackList() {
+        val data: List<String> = ArrayList(blackList)
+        storageHandler.connection.use { connection ->
+            val statement = "DELETE FROM $TableName;"
+            connection!!.prepareStatement(statement).use { preparedStatement -> preparedStatement.execute() }
+            for (userinfo in data) {
+                val statement2 = "INSERT INTO " + TableName + " (" +
                         "userID)" +
-                        " VALUES (?)";
-                try(PreparedStatement preparedStatement = connection.prepareStatement(statement2)){
-                    preparedStatement.setString(1, userinfo);
-                    preparedStatement.execute();
+                        " VALUES (?)"
+                connection.prepareStatement(statement2).use { preparedStatement ->
+                    preparedStatement.setString(1, userinfo)
+                    preparedStatement.execute()
                 }
             }
         }
     }
 
-    public void cacheBlackList() throws SQLException{
-        try(Connection connection = storageHandler.getConnection()){
-            String statement = "SELECT * from " + TableName + ";";
-            try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
-                int amount = 0;
-                ResultSet resultSet = preparedStatement.executeQuery();
-                while(resultSet.next()){
-                    amount++;
+    @Throws(SQLException::class)
+    fun cacheBlackList() {
+        storageHandler.connection.use { connection ->
+            val statement = "SELECT * from $TableName;"
+            connection!!.prepareStatement(statement).use { preparedStatement ->
+                var amount = 0
+                val resultSet = preparedStatement.executeQuery()
+                while (resultSet.next()) {
+                    amount++
                     try {
-                        String ID = resultSet.getString("userID");
-                        blackList.add(ID);
-                    }catch (Exception ignored) {}
+                        val ID = resultSet.getString("userID")
+                        blackList.add(ID)
+                    } catch (ignored: Exception) {
+                    }
                 }
-                TextUtil.sendMessage("Loaded: " + amount + " blacklisted users from database.");
+                sendMessage("Loaded: $amount blacklisted users from database.")
             }
         }
+    }
+
+    init {
+        try {
+            storageHandler.createTable(TableName, "UserID TEXT")
+        } catch (error: SQLException) {
+            error.printStackTrace()
+        }
+        try {
+            cacheBlackList()
+        } catch (error: SQLException) {
+            error.printStackTrace()
+        }
+        blackListUpdater()
     }
 }

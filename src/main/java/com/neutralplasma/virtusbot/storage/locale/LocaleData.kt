@@ -1,33 +1,22 @@
-package com.neutralplasma.virtusbot.storage.locale;
+package com.neutralplasma.virtusbot.storage.locale
 
+import java.util.*
 
-import java.util.HashMap;
-
-public class LocaleData {
-    HashMap<String, String> localedata;
-
-    public LocaleData(HashMap<String, String> localedata){
-        this.localedata = localedata;
-    }
-
-    public String getLocale(String locale){
+class LocaleData(var allLocales: HashMap<String, String>) {
+    fun getLocale(locale: String?): String? {
         try {
-            String data = localedata.get(locale);
-
+            val data = allLocales[locale]
             if (data != null) {
-                return data;
+                return data
             }
-        }catch (NullPointerException error){
-            return null;
+        } catch (error: NullPointerException) {
+            return null
         }
-        return null;
+        return null
     }
 
-    public void updateLocale(String locale, String localedata){
-        this.localedata.put(locale, localedata);
+    fun updateLocale(locale: String, localedata: String) {
+        allLocales[locale] = localedata
     }
 
-    public HashMap<String, String> getAllLocales(){
-        return this.localedata;
-    }
 }

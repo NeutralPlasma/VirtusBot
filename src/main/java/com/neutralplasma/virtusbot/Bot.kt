@@ -1,67 +1,34 @@
-package com.neutralplasma.virtusbot;
+package com.neutralplasma.virtusbot
 
-import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter
+import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.entities.Guild
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.function.Consumer
 
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Guild;
+class Bot(val waiter: EventWaiter) {
+    val threadpool: ScheduledExecutorService
+    private var shuttingDown = false
+    lateinit var jda: JDA
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-
-public class Bot {
-    private final EventWaiter waiter;
-    private final ScheduledExecutorService threadpool;
-
-    private boolean shuttingDown = false;
-    private JDA jda;
-
-    public Bot(EventWaiter waiter)
-    {
-        this.waiter = waiter;
-        this.threadpool = Executors.newSingleThreadScheduledExecutor();
-    }
-    public ScheduledExecutorService getThreadpool()
-    {
-        return threadpool;
+    fun closeAudioConnection(guildId: Long) {
+        val guild = jda.getGuildById(guildId)
+        if (guild != null) threadpool.submit { guild.audioManager.closeAudioConnection() }
     }
 
-    public JDA getJDA()
-    {
-        return jda;
-    }
-
-    public void closeAudioConnection(long guildId)
-    {
-        Guild guild = jda.getGuildById(guildId);
-        if(guild!=null)
-            threadpool.submit(() -> guild.getAudioManager().closeAudioConnection());
-    }
-
-    public void shutdown()
-    {
-        if(shuttingDown)
-            return;
-        shuttingDown = true;
-        threadpool.shutdownNow();
-        if(jda.getStatus()!=JDA.Status.SHUTTING_DOWN)
-        {
-            jda.getGuilds().forEach(g ->
-            {
-                g.getAudioManager().closeAudioConnection();
-            });
-            jda.shutdown();
+    fun shutdown() {
+        if (shuttingDown) return
+        shuttingDown = true
+        threadpool.shutdownNow()
+        if (jda.status != JDA.Status.SHUTTING_DOWN) {
+            jda.guilds.forEach(Consumer { g: Guild -> g.audioManager.closeAudioConnection() })
+            jda.shutdown()
         }
-        System.exit(0);
+        System.exit(0)
     }
 
-    public EventWaiter getWaiter()
-    {
-        return waiter;
+    init {
+        threadpool = Executors.newSingleThreadScheduledExecutor()
     }
-
-    public void setJDA(JDA jda)
-    {
-        this.jda = jda;
-    }
-
 }

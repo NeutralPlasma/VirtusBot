@@ -1,84 +1,49 @@
-package com.neutralplasma.virtusbot.handlers.playerLeveling;
+package com.neutralplasma.virtusbot.handlers.playerLeveling
 
-import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettings;
-import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler;
-import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler;
-import com.neutralplasma.virtusbot.utils.GraphicUtil;
-import com.neutralplasma.virtusbot.utils.Resizer;
-import com.neutralplasma.virtusbot.utils.TextUtil;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler
+import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
+import com.neutralplasma.virtusbot.utils.GraphicUtil.dye
+import com.neutralplasma.virtusbot.utils.Resizer
+import com.neutralplasma.virtusbot.utils.TextUtil.makeRoundedCorner
+import com.neutralplasma.virtusbot.utils.TextUtil.sendMessage
+import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.entities.User
+import java.awt.Color
+import java.awt.Font
+import java.awt.GradientPaint
+import java.awt.RenderingHints
+import java.awt.image.BufferedImage
+import java.io.File
+import java.io.IOException
+import java.net.URL
+import java.sql.SQLException
+import java.util.*
+import javax.imageio.ImageIO
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
-
-public class PlayerLeveling {
-
-    private final Random random = new Random();
-    private StorageHandler storage;
-    private PlayerSettingsHandler playerSettingsHandler;
-    private final ArrayList<String> blackListed = new ArrayList<>();
-    private final String tableName = "LevelingData";
-
-    private HashMap<String, MultiplierData> multipliers = new HashMap<>();
-
-    public HashMap<String, PlayerData> users = new HashMap<>();
-
-
-    public PlayerLeveling(StorageHandler storage, PlayerSettingsHandler playerSettingsHandler){
-        this.storage = storage;
-        this.playerSettingsHandler = playerSettingsHandler;
-        blackListed.add("723303528780529677");
-
+class PlayerLeveling(private val storage: StorageHandler, private val playerSettingsHandler: PlayerSettingsHandler) {
+    private val random = Random()
+    private val blackListed = ArrayList<String>()
+    private val tableName = "LevelingData"
+    private val multipliers = HashMap<String, MultiplierData?>()
+    var users = HashMap<String, PlayerData>()
+    var updatingTask = Runnable {
         try {
-            storage.createTable(tableName,
-                    "userID TEXT," +
-                    "guildID TEXT," +
-                    "xp LONG," +
-                    "level INT");
-        }catch (SQLException error){
-            error.printStackTrace();
+            syncUsers()
+        } catch (ignored: Exception) {
         }
-
-        try {
-            cacheUsers();
-        }catch (SQLException error){
-            error.printStackTrace();
-        }
-
-        userUpdater();
     }
-
-
-    Runnable updatingTask = () -> {
-        try {
-            syncUsers();
-        }catch (Exception ignored){}
-    };
 
     /**
      * Runs Sync function every 1 minute.
      */
-    public void userUpdater(){
-        Timer t = new Timer();
-        t.scheduleAtFixedRate(new TimerTask() {
-
-            @Override
-            public void run() {
-                updatingTask.run();
+    fun userUpdater() {
+        val t = Timer()
+        t.scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                updatingTask.run()
             }
-
-        }, 100, 60000);
+        }, 100, 60000)
     }
 
     /**
@@ -86,28 +51,25 @@ public class PlayerLeveling {
      *
      * @throws SQLException if there is issue with SQL connection.
      */
-
-    public void syncUsers() throws SQLException{
-        HashMap<String, PlayerData> data = new HashMap<>(users);
-
-        try(Connection connection = storage.getConnection()){
-            String statement = "DELETE FROM " + tableName + ";";
-            try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
-                preparedStatement.execute();
-            }
-            for(String userinfo : data.keySet()){
-                PlayerData udata = data.get(userinfo);
-                String statement2 = "INSERT INTO " + tableName + "(" +
+    @Throws(SQLException::class)
+    fun syncUsers() {
+        val data = HashMap(users)
+        storage.connection.use { connection ->
+            val statement = "DELETE FROM $tableName;"
+            connection!!.prepareStatement(statement).use { preparedStatement -> preparedStatement.execute() }
+            for (userinfo in data.keys) {
+                val udata = data[userinfo]
+                val statement2 = "INSERT INTO " + tableName + "(" +
                         "userID," +
                         "guildID," +
                         "xp," +
-                        "level) VALUES (?, ?, ?, ?)";
-                try(PreparedStatement preparedStatement = connection.prepareStatement(statement2)){
-                    preparedStatement.setLong(1, udata.getUserID());
-                    preparedStatement.setLong(2, udata.getServerID());
-                    preparedStatement.setLong(3, udata.getXp());
-                    preparedStatement.setInt(4, udata.getLevel());
-                    preparedStatement.execute();
+                        "level) VALUES (?, ?, ?, ?)"
+                connection.prepareStatement(statement2).use { preparedStatement ->
+                    preparedStatement.setLong(1, udata!!.userID)
+                    preparedStatement.setLong(2, udata.serverID)
+                    preparedStatement.setLong(3, udata.xp)
+                    preparedStatement.setInt(4, udata.level)
+                    preparedStatement.execute()
                 }
             }
         }
@@ -118,25 +80,26 @@ public class PlayerLeveling {
      *
      * @throws SQLException if there's issue with SQL connection
      */
-
-    public void cacheUsers() throws SQLException{
-        try(Connection connection = storage.getConnection()){
-            String statement = "SELECT * from " + tableName + ";";
-            try(PreparedStatement preparedStatement = connection.prepareStatement(statement)){
-                int amount = 0;
-                ResultSet resultSet = preparedStatement.executeQuery();
-                while(resultSet.next()){
-                    amount++;
+    @Throws(SQLException::class)
+    fun cacheUsers() {
+        storage.connection.use { connection ->
+            val statement = "SELECT * from $tableName;"
+            connection!!.prepareStatement(statement).use { preparedStatement ->
+                var amount = 0
+                val resultSet = preparedStatement.executeQuery()
+                while (resultSet.next()) {
+                    amount++
                     try {
-                        PlayerData data = new PlayerData(resultSet.getLong("userID"),
+                        val data = PlayerData(resultSet.getLong("userID"),
                                 resultSet.getLong("guildID"),
                                 resultSet.getLong("xp"),
-                                resultSet.getInt("level"));
-                        String info = data.getUserID() + ":" + data.getServerID();
-                        users.put(info, data);
-                    }catch (Exception ignored) {}
+                                resultSet.getInt("level"))
+                        val info = data.userID.toString() + ":" + data.serverID
+                        users[info] = data
+                    } catch (ignored: Exception) {
+                    }
                 }
-                TextUtil.sendMessage("Loaded: " + amount + " users from database.");
+                sendMessage("Loaded: $amount users from database.")
             }
         }
     }
@@ -147,18 +110,19 @@ public class PlayerLeveling {
      * @param guild - Guild from which to get data.
      * @return PlayerData.class
      */
+    fun getUser(user: User, guild: Guild): PlayerData? {
+        val info = user.id + ":" + guild.id
+        return users[info]
+    }
 
-    public PlayerData getUser(User user, Guild guild){
-        String info = user.getId() + ":" + guild.getId();
-        return users.get(info);
+    fun updateUser(data: PlayerData) {
+        val info = data.userID.toString() + ":" + data.serverID
+        users[info] = data
     }
-    public void updateUser(PlayerData data){
-        String info = data.getUserID() + ":" + data.getServerID();
-        users.put(info, data);
-    }
-    public void addUser(PlayerData playerData){
-        String info = playerData.getUserID() + ":" + playerData.getServerID();
-        users.put(info, playerData);
+
+    fun addUser(playerData: PlayerData) {
+        val info = playerData.userID.toString() + ":" + playerData.serverID
+        users[info] = playerData
     }
 
     /**
@@ -166,16 +130,15 @@ public class PlayerLeveling {
      * @param user User of discord.
      * @param guild Guild in which you want to add xp.
      */
-    @Deprecated
-    public void addXp(User user, Guild guild){
-        PlayerData data = getUser(user, guild);
-        if(data == null){
-            data = new PlayerData(user.getIdLong(), guild.getIdLong(), 0, 0);
-
+    @Deprecated("")
+    fun addXp(user: User, guild: Guild) {
+        var data = getUser(user, guild)
+        if (data == null) {
+            data = PlayerData(user.idLong, guild.idLong, 0, 0)
         }
-        data.setXp(data.getXp() + calcXpToAdd(guild));
-        updateUser(data);
-        calcIfLevelUp(user, guild, null, data);
+        data.xp = data.xp + calcXpToAdd(guild)
+        updateUser(data)
+        calcIfLevelUp(user, guild, null, data)
     }
 
     /**
@@ -184,15 +147,14 @@ public class PlayerLeveling {
      * @param guild Guild in which you want to add xp.
      * @param channel Text channel in which to send levelUP message
      */
-    public void addXp(User user, Guild guild, TextChannel channel){
-        PlayerData data = getUser(user, guild);
-        if(data == null){
-            data = new PlayerData(user.getIdLong(), guild.getIdLong(), 0L, 0);
-
+    fun addXp(user: User, guild: Guild, channel: TextChannel?) {
+        var data = getUser(user, guild)
+        if (data == null) {
+            data = PlayerData(user.idLong, guild.idLong, 0L, 0)
         }
-        data.setXp(data.getXp() + calcXpToAdd(guild));
-        updateUser(data);
-        calcIfLevelUp(user, guild, channel, data);
+        data.xp = data.xp + calcXpToAdd(guild)
+        updateUser(data)
+        calcIfLevelUp(user, guild, channel, data)
     }
 
     /**
@@ -200,14 +162,13 @@ public class PlayerLeveling {
      * @param user User of discord.
      * @param guild Guild in which you want to add xp.
      */
-    public void removeXp(User user, Guild guild){
-        PlayerData data = getUser(user, guild);
-        if(data == null){
-            data = new PlayerData(user.getIdLong(), guild.getIdLong(), 0, 0);
-
+    fun removeXp(user: User, guild: Guild) {
+        var data = getUser(user, guild)
+        if (data == null) {
+            data = PlayerData(user.idLong, guild.idLong, 0, 0)
         }
-        data.setXp(data.getXp() - calcXpToAdd(guild));
-        updateUser(data);
+        data.xp = data.xp - calcXpToAdd(guild)
+        updateUser(data)
     }
 
     /**
@@ -215,10 +176,9 @@ public class PlayerLeveling {
      * @param data PlayerLeveling data.
      * @return returns needed xp for levelup.
      */
-    public double getNeededXP(PlayerData data){
-        int currentLevel = data.getLevel();
-        double needed = 100 * Math.pow(2,(currentLevel-2));
-        return needed;
+    fun getNeededXP(data: PlayerData): Double {
+        val currentLevel = data.level
+        return 100 * Math.pow(2.0, (currentLevel - 2).toDouble())
     }
 
     /**
@@ -226,10 +186,9 @@ public class PlayerLeveling {
      * @param data PlayerLeveling data.
      * @return Returns xp needed for 1 level below users level.
      */
-    public double previous(PlayerData data){
-        int prevLevel = data.getLevel() - 1;
-        double needed = 100 * Math.pow(2,(prevLevel-2));
-        return needed;
+    fun previous(data: PlayerData): Double {
+        val prevLevel = data.level - 1
+        return 100 * Math.pow(2.0, (prevLevel - 2).toDouble())
     }
 
     /**
@@ -238,264 +197,248 @@ public class PlayerLeveling {
      * @param guild Guild in which to calculate
      * @param channel Channel to which to send LevelUP message
      */
-    public void calcIfLevelUp(User user, Guild guild, TextChannel channel, PlayerData data){
-        int currentLevel = data.getLevel();
-        if(data.getXp() > (100 * Math.pow(2,(currentLevel-2)))){
-            data.setLevel(data.getLevel() + 1);
-            updateUser(data);
-            if(channel != null){
-                if(!blackListed.contains(channel.getId())) {
-                    sendLevelUpMessage(user, data, channel);
+    fun calcIfLevelUp(user: User, guild: Guild?, channel: TextChannel?, data: PlayerData) {
+        val currentLevel = data.level
+        if (data.xp > 100 * Math.pow(2.0, (currentLevel - 2).toDouble())) {
+            data.level = data.level + 1
+            updateUser(data)
+            if (channel != null) {
+                if (!blackListed.contains(channel.id)) {
+                    sendLevelUpMessage(user, data, channel)
                 }
             }
-
         }
     }
 
-    public int getMultiplier(Guild guild){
-        if(multipliers.containsKey(guild.getId())) {
-            return multipliers.get(guild.getId()).getActiveMultiplier();
-        }else{
-            return 1;
+    fun getMultiplier(guild: Guild): Int {
+        return if (multipliers.containsKey(guild.id)) {
+            multipliers[guild.id]!!.getActiveMultiplier()
+        } else {
+            1
         }
     }
 
-    public MultiplierData getMultiplierData(Guild guild){
-        return  multipliers.get(guild.getId());
+    fun getMultiplierData(guild: Guild): MultiplierData? {
+        return multipliers[guild.id]
     }
 
-    public void setMultiplier(Guild guild, MultiplierData multiplierData){
-        multipliers.put(guild.getId(), multiplierData);
+    fun setMultiplier(guild: Guild, multiplierData: MultiplierData?) {
+        multipliers[guild.id] = multiplierData
     }
 
-    public void sendInfoImage(User user, PlayerData data, TextChannel channel){
-        Thread thread = new Thread(() -> {
+    fun sendInfoImage(user: User, data: PlayerData, channel: TextChannel) {
+        val thread = Thread(Runnable {
             try {
-                String font = "Berlin Sans FB Demi";
-                int height = 521;
-                int width = 1250;
-                boolean darkTheme = true;
-                PlayerSettings playerSettings = playerSettingsHandler.getSettings(user);
-                Color color1 = Color.orange;
-                Color color2 = Color.red;
-                if(playerSettings != null){
-                    if(playerSettings.getColor1() != null){
-                        color1 = playerSettings.getColor1();
+                val font = "Berlin Sans FB Demi"
+                val height = 521
+                val width = 1250
+                var darkTheme = true
+                val playerSettings = playerSettingsHandler.getSettings(user)
+                var color1 = Color.orange
+                var color2 = Color.red
+                if (playerSettings != null) {
+                    if (playerSettings.getColor1() != null) {
+                        color1 = playerSettings.getColor1()
                     }
-                    if(playerSettings.getColor2() != null){
-                        color2 = playerSettings.getColor2();
+                    if (playerSettings.getColor2() != null) {
+                        color2 = playerSettings.getColor2()
                     }
                 }
-                double progressBar = Math.max(Math.round(((data.getXp() - this.previous(data)) / (this.getNeededXP(data) - this.previous(data))) * 360), 0);
-                double progress = Math.max(Math.round(((data.getXp() - this.previous(data)) / (this.getNeededXP(data) - this.previous(data))) * 100), 0);
-
-                URL url = new URL("http://images.sloempire.eu/Developing/Level-Banner-01.png");
-                BufferedImage background = ImageIO.read(url.openStream());
-                background = Resizer.AVERAGE.resize(background, width, height);
-
-                GradientPaint primary = new GradientPaint(
-                        0f, 0f, color1, width, 0f, color2);
-
-                background = GraphicUtil.dye(background, primary);
-
-                url = new URL("http://images.sloempire.eu/Developing/level-banner-square-01.png");
-                BufferedImage levelSquare = ImageIO.read(url.openStream());
-                background = Resizer.AVERAGE.resize(background, width, height);
-
-
-                url = new URL(user.getEffectiveAvatarUrl());
-                BufferedImage avatar = ImageIO.read(url.openStream());
-                avatar = Resizer.PROGRESSIVE_BILINEAR.resize(avatar, 400, 400);
-
-                BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-
-                PlayerSettings settings = playerSettingsHandler.getSettings(user);
+                val progressBar = Math.max(Math.round((data.xp - previous(data)) / (getNeededXP(data) - previous(data)) * 360), 0).toDouble()
+                val progress = Math.max(Math.round((data.xp - previous(data)) / (getNeededXP(data) - previous(data)) * 100), 0).toDouble()
+                var url = URL("http://images.sloempire.eu/Developing/Level-Banner-01.png")
+                var background = ImageIO.read(url.openStream())
+                background = Resizer.AVERAGE.resize(background, width, height)
+                val primary = GradientPaint(
+                        0f, 0f, color1, width.toFloat(), 0f, color2)
+                background = dye(background, primary)
+                url = URL("http://images.sloempire.eu/Developing/level-banner-square-01.png")
+                val levelSquare = ImageIO.read(url.openStream())
+                background = Resizer.AVERAGE.resize(background, width, height)
+                url = URL(user.effectiveAvatarUrl)
+                var avatar = ImageIO.read(url.openStream())
+                avatar = Resizer.PROGRESSIVE_BILINEAR.resize(avatar!!, 400, 400)
+                val bufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+                val settings = playerSettingsHandler.getSettings(user)
                 if (settings != null) {
-                    darkTheme = settings.isDarkTheme();
+                    darkTheme = settings.isDarkTheme()
                 }
-
-
-                RenderingHints rh = new RenderingHints(
+                val rh = RenderingHints(
                         RenderingHints.KEY_TEXT_ANTIALIASING,
-                        RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-
-                Graphics2D g2d = bufferedImage.createGraphics();
-                g2d.addRenderingHints(rh);
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+                val g2d = bufferedImage.createGraphics()
+                g2d.addRenderingHints(rh)
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
                 // Background
-                g2d.setColor(darkTheme ? Color.darkGray : Color.white);
-                g2d.fillRect(0, 0, width, height);
+                g2d.color = if (darkTheme) Color.darkGray else Color.white
+                g2d.fillRect(0, 0, width, height)
 
                 // Background behind avatar
-                g2d.drawImage(background, 0, 0, width, height, 0, 0, background.getWidth(), background.getHeight(), null);
-                g2d.drawImage(levelSquare, 0, 0, width, height, 0, 0, background.getWidth(), background.getHeight(), null);
+                g2d.drawImage(background, 0, 0, width, height, 0, 0, background.width, background.height, null)
+                g2d.drawImage(levelSquare, 0, 0, width, height, 0, 0, background.width, background.height, null)
 
 
                 // Drawing avatar
-                g2d.drawImage(avatar, 30, 30, 350, 350, 0, 0, 400, 400, null);
+                g2d.drawImage(avatar, 30, 30, 350, 350, 0, 0, 400, 400, null)
                 // User name
-                g2d.setPaint(primary);
-                g2d.setFont(new Font(font, Font.BOLD, 50));
-                g2d.drawString(user.getName(), 30, 400);
-                g2d.setColor(darkTheme ? Color.white : Color.darkGray);
-                g2d.setFont(new Font(font, Font.BOLD, 40));
-                g2d.drawString("#" + user.getDiscriminator(), 30, 450);
+                g2d.paint = primary
+                g2d.font = Font(font, Font.BOLD, 50)
+                g2d.drawString(user.name, 30, 400)
+                g2d.color = if (darkTheme) Color.white else Color.darkGray
+                g2d.font = Font(font, Font.BOLD, 40)
+                g2d.drawString("#" + user.discriminator, 30, 450)
 
                 //Level/exp text  + number
-                g2d.setColor(darkTheme ? Color.white : Color.darkGray);
-                g2d.setFont(new Font(font, Font.PLAIN, 40));
-                g2d.drawString("Level:", 400, 90);
-                g2d.drawString("Experience:", 400, 210);
-
-                g2d.setFont(new Font(font, Font.BOLD, 70));
-                g2d.drawString(data.getLevel() + "", 400, 160);
-                g2d.drawString(data.getXp() + "", 400, 280);
+                g2d.color = if (darkTheme) Color.white else Color.darkGray
+                g2d.font = Font(font, Font.PLAIN, 40)
+                g2d.drawString("Level:", 400, 90)
+                g2d.drawString("Experience:", 400, 210)
+                g2d.font = Font(font, Font.BOLD, 70)
+                g2d.drawString(data.level.toString() + "", 400, 160)
+                g2d.drawString(data.xp.toString() + "", 400, 280)
 
 
                 // Progress circle
-                g2d.setPaint(primary);
-                g2d.fillArc(1006 - 220 / 2, 258 - 220 / 2, 220, 220, 270, (int) progressBar);
-                g2d.setColor(Color.white);
-                g2d.fillOval(1006 - 190 / 2, 258 - 190 / 2, 190, 190);
-
-
+                g2d.paint = primary
+                g2d.fillArc(1006 - 220 / 2, 258 - 220 / 2, 220, 220, 270, progressBar.toInt())
+                g2d.color = Color.white
+                g2d.fillOval(1006 - 190 / 2, 258 - 190 / 2, 190, 190)
 
 
                 // Percent number.
-                float textSize = 45;
-                g2d.setFont(new Font(font, Font.BOLD, (int) textSize));
-                String level = progress + "%";
-                int size = g2d.getFontMetrics().stringWidth(level);
-                g2d.setPaint(primary);
-                g2d.drawString(level, (float) (1006.23 - (size / 2)), (float) 230.32 + (textSize / 4));
+                val textSize = 45f
+                g2d.font = Font(font, Font.BOLD, textSize.toInt())
+                val level = "$progress%"
+                var size = g2d.fontMetrics.stringWidth(level)
+                g2d.paint = primary
+                g2d.drawString(level, (1006.23 - size / 2).toFloat(), 230.32.toFloat() + textSize / 4)
                 // xp needed
-                g2d.setColor(Color.gray);
-                String needed = (this.getNeededXP(data) - data.getXp()) + "xp";
-                size = g2d.getFontMetrics().stringWidth(needed);
-                g2d.drawString(needed, (float) (1006.23 - (size / 2)), (float) 264.32 + (textSize / 4));
-
-                String text = "to go";
-                g2d.setFont(new Font(font, Font.PLAIN, (int) textSize));
-                size = g2d.getFontMetrics().stringWidth(text);
-                g2d.drawString(text, (float) (1006.23 - (size / 2)), (float) 300.32 + (textSize / 4));
-
-                g2d.dispose();
+                g2d.color = Color.gray
+                val needed = (getNeededXP(data) - data.xp).toString() + "xp"
+                size = g2d.fontMetrics.stringWidth(needed)
+                g2d.drawString(needed, (1006.23 - size / 2).toFloat(), 264.32.toFloat() + textSize / 4)
+                val text = "to go"
+                g2d.font = Font(font, Font.PLAIN, textSize.toInt())
+                size = g2d.fontMetrics.stringWidth(text)
+                g2d.drawString(text, (1006.23 - size / 2).toFloat(), 300.32.toFloat() + textSize / 4)
+                g2d.dispose()
                 try {
-                    File file = new File("myimage.png");
-                    ImageIO.write(bufferedImage, "png", file);
-                    channel.sendFile(file, "level.png").queue();
-                } catch (IOException error) {
-                    channel.sendMessage("ERROR!").queue();
+                    val file = File("myimage.png")
+                    ImageIO.write(bufferedImage, "png", file)
+                    channel.sendFile(file, "level.png").queue()
+                } catch (error: IOException) {
+                    channel.sendMessage("ERROR!").queue()
                 }
-            } catch (Exception error) {
-                error.printStackTrace();
+            } catch (error: Exception) {
+                error.printStackTrace()
             }
-        });
-        thread.start();
+        })
+        thread.start()
     }
 
-
-    public void sendLevelUpMessage(User user, PlayerData data, TextChannel channel){
-        Thread thread = new Thread(() -> {
+    fun sendLevelUpMessage(user: User, data: PlayerData, channel: TextChannel) {
+        val thread = Thread(Runnable {
             try {
-                String font = "Berlin Sans FB Demi";
-                int height = 521;
-                int width = 1250;
-                boolean darkTheme = true;
-
-                GradientPaint primary = new GradientPaint(
-                        0f, 0f, Color.ORANGE, width, 0f, new Color(0xFF6600));
-                GradientPaint secondary = new GradientPaint(
-                        0f, 0f, new Color(0xFF4800), width, 0f, new Color(0xFF6600));
-
-                URL url = new URL("http://images.sloempire.eu/Developing/LevelUp-Left-01.png");
-                BufferedImage left = ImageIO.read(url.openStream());
-                left = Resizer.AVERAGE.resize(left, width, height);
-                left = GraphicUtil.dye(left, primary);
-
-                url = new URL("http://images.sloempire.eu/Developing/LevelUp-Right-01.png");
-                BufferedImage right = ImageIO.read(url.openStream());
-                right = Resizer.AVERAGE.resize(right, width, height);
-                right = GraphicUtil.dye(right, secondary);
-
-                url = new URL("http://images.sloempire.eu/Developing/levelup-overlay-01.png");
-                BufferedImage overlay = ImageIO.read(url.openStream());
-                overlay = Resizer.AVERAGE.resize(overlay, width, height);
-
-                url = new URL("http://images.sloempire.eu/Developing/levelup-numberoverlay-01.png");
-                BufferedImage overlaynumber = ImageIO.read(url.openStream());
-                overlaynumber = Resizer.AVERAGE.resize(overlaynumber, width, height);
-
-
-
-
-
-
-                url = new URL(user.getEffectiveAvatarUrl());
-                BufferedImage avatar = ImageIO.read(url.openStream());
-                avatar = Resizer.PROGRESSIVE_BILINEAR.resize(avatar, 300, 300);
-                avatar = TextUtil.makeRoundedCorner(avatar, avatar.getWidth(), true);
-
-                BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-                PlayerSettings settings = playerSettingsHandler.getSettings(user);
-                if(settings != null){
-                    darkTheme = settings.isDarkTheme();
+                val font = "Berlin Sans FB Demi"
+                val height = 521
+                val width = 1250
+                var darkTheme = true
+                val primary = GradientPaint(
+                        0f, 0f, Color.ORANGE, width.toFloat(), 0f, Color(0xFF6600))
+                val secondary = GradientPaint(
+                        0f, 0f, Color(0xFF4800), width.toFloat(), 0f, Color(0xFF6600))
+                var url = URL("http://images.sloempire.eu/Developing/LevelUp-Left-01.png")
+                var left = ImageIO.read(url.openStream())
+                left = Resizer.AVERAGE.resize(left, width, height)
+                left = dye(left, primary)
+                url = URL("http://images.sloempire.eu/Developing/LevelUp-Right-01.png")
+                var right = ImageIO.read(url.openStream())
+                right = Resizer.AVERAGE.resize(right, width, height)
+                right = dye(right, secondary)
+                url = URL("http://images.sloempire.eu/Developing/levelup-overlay-01.png")
+                var overlay = ImageIO.read(url.openStream())
+                overlay = Resizer.AVERAGE.resize(overlay, width, height)
+                url = URL("http://images.sloempire.eu/Developing/levelup-numberoverlay-01.png")
+                var overlaynumber = ImageIO.read(url.openStream())
+                overlaynumber = Resizer.AVERAGE.resize(overlaynumber, width, height)
+                url = URL(user.effectiveAvatarUrl)
+                var avatar = ImageIO.read(url.openStream())
+                avatar = Resizer.PROGRESSIVE_BILINEAR.resize(avatar, 300, 300)
+                avatar = makeRoundedCorner(avatar, avatar.width, true)
+                val bufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+                val settings = playerSettingsHandler.getSettings(user)
+                if (settings != null) {
+                    darkTheme = settings.isDarkTheme()
                 }
-                RenderingHints rh = new RenderingHints(
+                val rh = RenderingHints(
                         RenderingHints.KEY_TEXT_ANTIALIASING,
-                        RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-                Graphics2D g2d = bufferedImage.createGraphics();
-
-                g2d.addRenderingHints(rh);
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+                val g2d = bufferedImage.createGraphics()
+                g2d.addRenderingHints(rh)
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
                 // Background
-                g2d.setColor(darkTheme ? Color.darkGray : Color.white);
-                g2d.fillRect(0, 0, width, height);
+                g2d.color = if (darkTheme) Color.darkGray else Color.white
+                g2d.fillRect(0, 0, width, height)
 
                 // Background behind avatar
-                g2d.drawImage(left, 0, 0, width, height, 0, 0, left.getWidth(), left.getHeight(), null);
-                g2d.drawImage(right, 0, 0, width, height, 0, 0, right.getWidth(), right.getHeight(), null);
+                g2d.drawImage(left, 0, 0, width, height, 0, 0, left.width, left.height, null)
+                g2d.drawImage(right, 0, 0, width, height, 0, 0, right.width, right.height, null)
 
 
                 // Drawing avatar
                 //g2d.drawImage(avatar, 140, 110, 400, 400, 0, 0, 400, 400, null);
-                g2d.drawImage(avatar, 140, 110, null);
+                g2d.drawImage(avatar, 140, 110, null)
                 // Overlay
-                g2d.drawImage(overlay, 0, 0, width, height, 0, 0, overlay.getWidth(), overlay.getHeight(), null);
-                g2d.drawImage(overlaynumber, 0, 0, width, height, 0, 0, overlaynumber.getWidth(), overlaynumber.getHeight(), null);
-
+                g2d.drawImage(overlay, 0, 0, width, height, 0, 0, overlay.width, overlay.height, null)
+                g2d.drawImage(overlaynumber, 0, 0, width, height, 0, 0, overlaynumber.width, overlaynumber.height, null)
 
 
                 //Level text  + number
-                g2d.setColor(Color.WHITE);
-                g2d.setFont(new Font(font, Font.BOLD, 100));
-                g2d.drawString("Level Up!", 690, 120);
-                g2d.setFont(new Font(font, Font.BOLD, 340));
-                String levelText = data.getLevel() + "";
-                int size = g2d.getFontMetrics().stringWidth(levelText);
-                g2d.drawString(levelText, 899.98f - size/2, 293.74f + 100f);
-
-
+                g2d.color = Color.WHITE
+                g2d.font = Font(font, Font.BOLD, 100)
+                g2d.drawString("Level Up!", 690, 120)
+                g2d.font = Font(font, Font.BOLD, 340)
+                val levelText = data.level.toString() + ""
+                val size = g2d.fontMetrics.stringWidth(levelText)
+                g2d.drawString(levelText, 899.98f - size / 2, 293.74f + 100f)
 
 
                 // Disposes of this graphics context and releases any system resources that it is using.
-                g2d.dispose();
+                g2d.dispose()
                 try {
-                    File file = new File("myimage.png");
-                    ImageIO.write(bufferedImage, "png", file);
-                    channel.sendFile(file, "level.png").queue();
-                } catch (IOException error) {
-                    channel.sendMessage("ERROR!").queue();
+                    val file = File("myimage.png")
+                    ImageIO.write(bufferedImage, "png", file)
+                    channel.sendFile(file, "level.png").queue()
+                } catch (error: IOException) {
+                    channel.sendMessage("ERROR!").queue()
                 }
-            }catch (Exception error){
-                error.printStackTrace();
+            } catch (error: Exception) {
+                error.printStackTrace()
             }
-        });
-        thread.start();
+        })
+        thread.start()
     }
 
-    public long calcXpToAdd(Guild guild){
-        return (long) (random.nextInt(1) + 3) * getMultiplier(guild);
+    fun calcXpToAdd(guild: Guild): Long {
+        return (random.nextInt(1) + 3).toLong() * getMultiplier(guild)
+    }
+
+    init {
+        blackListed.add("723303528780529677")
+        try {
+            storage.createTable(tableName,
+                    "userID TEXT," +
+                            "guildID TEXT," +
+                            "xp LONG," +
+                            "level INT")
+        } catch (error: SQLException) {
+            error.printStackTrace()
+        }
+        try {
+            cacheUsers()
+        } catch (error: SQLException) {
+            error.printStackTrace()
+        }
+        userUpdater()
     }
 }

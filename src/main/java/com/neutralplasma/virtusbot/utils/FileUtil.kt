@@ -1,21 +1,19 @@
-package com.neutralplasma.virtusbot.utils;
+package com.neutralplasma.virtusbot.utils
 
-import com.neutralplasma.virtusbot.VirtusBot;
+import com.neutralplasma.virtusbot.VirtusBot
+import java.io.File
 
-import java.io.File;
-import java.security.CodeSource;
-
-public class FileUtil {
-
-    public static String getPath(){
-        try{
-            CodeSource codeSource = VirtusBot.class.getProtectionDomain().getCodeSource();
-            File jarFile = new File(codeSource.getLocation().toURI().getPath());
-            String jarDir = jarFile.getParentFile().getPath();
-            return jarDir;
-        }catch (Exception error){
-            error.printStackTrace();
+object FileUtil {
+    @JvmStatic
+    val path: String
+        get() {
+            try {
+                val codeSource = VirtusBot::class.java.protectionDomain.codeSource
+                val jarFile = File(codeSource.location.toURI().path)
+                return jarFile.parentFile.path
+            } catch (error: Exception) {
+                error.printStackTrace()
+            }
+            return "NULL"
         }
-        return "NULL";
-    }
 }

@@ -1,80 +1,73 @@
-package com.neutralplasma.virtusbot.commands.general;
+package com.neutralplasma.virtusbot.commands.general
 
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
-import com.jagrosh.jdautilities.menu.Paginator;
-import com.neutralplasma.virtusbot.Bot;
-import com.neutralplasma.virtusbot.VirtusBot;
-import com.neutralplasma.virtusbot.settings.NewSettingsManager;
-import com.neutralplasma.virtusbot.storage.locale.LocaleHandler;
-import com.neutralplasma.virtusbot.utils.TextUtil;
-import net.dv8tion.jda.api.exceptions.PermissionException;
+import com.jagrosh.jdautilities.command.Command
+import com.jagrosh.jdautilities.command.CommandEvent
+import com.jagrosh.jdautilities.menu.Paginator
+import com.neutralplasma.virtusbot.Bot
+import com.neutralplasma.virtusbot.VirtusBot.commands
+import com.neutralplasma.virtusbot.settings.NewSettingsManager
+import com.neutralplasma.virtusbot.storage.locale.LocaleHandler
+import com.neutralplasma.virtusbot.utils.TextUtil.filter
+import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.exceptions.PermissionException
+import java.awt.Color
+import java.util.*
+import java.util.concurrent.TimeUnit
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
+class HelpCommand(newSettingsManager: NewSettingsManager, localeHandler: LocaleHandler, bot: Bot) : Command() {
+    private val newSettingsManager: NewSettingsManager
+    private val localeHandler: LocaleHandler
+    private val builder: Paginator.Builder
+    override fun execute(event: CommandEvent) {
+        val commands = commands
+        val args = event.args.split(" ".toRegex()).toTypedArray()
+        val content = ArrayList<String>()
+        if (!args[0].equals("", ignoreCase = true)) {
+            for (command in commands) {
+                if (command.category != null && command.category.name.equals(args[0], ignoreCase = true)) {
+                    content.add("`" + command.name + " " + (if (command.arguments == null) "" else command.arguments) + "`  - " + command.help)
+                }
+            }
+        } else {
+            for (command in commands) {
+                content.add("`" + command.name + " " + (if (command.arguments == null) "" else command.arguments) + "`  - " + command.help)
+            }
+        }
+        val list = arrayOfNulls<String>(content.size)
+        for (i in content.indices) {
+            list[i] = content[i]
+        }
+        builder.setText { i1: Int?, i2: Int? -> getQueueTitle(event.client.success, args[0]) }
+                .setItems(*list)
+                .setUsers(event.author)
+                .setColor(Color.magenta.brighter())
+        builder.build().paginate(event.channel, 1)
+    }
 
-public class HelpCommand extends Command {
+    private fun getQueueTitle(success: String, category: String): String {
+        return filter("$success | $category")
+    }
 
-    private NewSettingsManager newSettingsManager;
-    private LocaleHandler localeHandler;
-    private final Paginator.Builder builder;
-
-    public HelpCommand(NewSettingsManager newSettingsManager, LocaleHandler localeHandler, Bot bot){
-        this.name = "help";
-        this.help = "Main help command.";
-        this.guildOnly = true;
-        this.newSettingsManager = newSettingsManager;
-        this.localeHandler = localeHandler;
-
-        builder = new Paginator.Builder()
+    init {
+        name = "help"
+        help = "Main help command."
+        guildOnly = true
+        this.newSettingsManager = newSettingsManager
+        this.localeHandler = localeHandler
+        builder = Paginator.Builder()
                 .setColumns(1)
-                .setFinalAction(m -> {try{m.clearReactions().queue();}catch(PermissionException ignore){}})
+                .setFinalAction { m: Message ->
+                    try {
+                        m.clearReactions().queue()
+                    } catch (ignore: PermissionException) {
+                    }
+                }
                 .setItemsPerPage(10)
                 .waitOnSinglePage(false)
                 .useNumberedItems(true)
                 .showPageNumbers(true)
                 .wrapPageEnds(true)
-                .setEventWaiter(bot.getWaiter())
-                .setTimeout(1, TimeUnit.MINUTES);
-    }
-
-    @Override
-    protected void execute(CommandEvent event) {
-        ArrayList<Command> commands = VirtusBot.getCommands();
-        String[] args = event.getArgs().split(" ");
-        ArrayList<String> content = new ArrayList<>();
-
-
-        if(!args[0].equalsIgnoreCase("")){
-            for(Command command : commands){
-                if(command.getCategory() != null && command.getCategory().getName().equalsIgnoreCase(args[0])){
-                    content.add("`" + command.getName() +" " + (command.getArguments() == null ? "" : command.getArguments()) +  "`  - " + command.getHelp());
-                }
-            }
-        }else{
-            for(Command command : commands){
-                content.add("`" + command.getName() +" " + (command.getArguments() == null ? "" : command.getArguments()) +  "`  - " + command.getHelp());
-            }
-        }
-
-        String[] list = new String[content.size()];
-
-        for(int i=0; i<content.size(); i++){
-            list[i] = content.get(i);
-        }
-
-
-        builder.setText((i1, i2) -> getQueueTitle(event.getClient().getSuccess(), args[0]))
-                .setItems(list)
-                .setUsers(event.getAuthor())
-                .setColor(Color.magenta.brighter())
-        ;
-        builder.build().paginate(event.getChannel(), 1);
-
-    }
-
-    private String getQueueTitle(String success, String category){
-        return TextUtil.filter(success + " | " + category);
+                .setEventWaiter(bot.waiter)
+                .setTimeout(1, TimeUnit.MINUTES)
     }
 }

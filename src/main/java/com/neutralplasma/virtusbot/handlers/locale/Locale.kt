@@ -1,8 +1,6 @@
-package com.neutralplasma.virtusbot.handlers.locale;
+package com.neutralplasma.virtusbot.handlers.locale
 
-import org.jetbrains.annotations.NotNull;
-
-public enum Locale {
+enum class Locale(text: String) {
     TICKET_HELP_CREATE_REACT_CONTENT("`React with \uD83D\uDCAC to create the ticket.`"),
     TICKET_HELP_CREATE_REACT_TITLE("Ticket Creation."),
     TICKET_HELP_CREATE_REACT_FIELD_TITLE("React with \uD83D\uDCAC to create the ticket."),
@@ -13,12 +11,7 @@ public enum Locale {
     VOTE_FIELD_TITLE("Vote info:"),
     ERROR_FIELD_TITLE("ERROR");
 
-
-    Locale(String text){
-
-    }
-
-    public @NotNull String getText(){
-        return this.name();
+    fun getText(): String {
+        return name
     }
 }
