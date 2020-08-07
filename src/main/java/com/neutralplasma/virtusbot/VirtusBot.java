@@ -126,6 +126,7 @@ public class VirtusBot {
         commands.add(new SetSuggestCmd(newSettingsManager, localeHandler));
         commands.add(new VoteCommand(localeHandler));
         commands.add(new SayCommand());
+        commands.add(new MultiplierCommand(playerLeveling));
 
         // music
         commands.add(new PlayCommand(audioManager, youtubeSearch));

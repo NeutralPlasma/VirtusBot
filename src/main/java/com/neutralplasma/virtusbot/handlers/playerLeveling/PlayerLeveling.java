@@ -30,7 +30,7 @@ public class PlayerLeveling {
     private final ArrayList<String> blackListed = new ArrayList<>();
     private final String tableName = "LevelingData";
 
-    private int ACTIVE_MULTIPLIER = 1;
+    private HashMap<String, MultiplierData> multipliers = new HashMap<>();
 
     public HashMap<String, PlayerData> users = new HashMap<>();
 
@@ -173,7 +173,7 @@ public class PlayerLeveling {
             data = new PlayerData(user.getIdLong(), guild.getIdLong(), 0, 0);
 
         }
-        data.setXp(data.getXp() + calcXpToAdd());
+        data.setXp(data.getXp() + calcXpToAdd(guild));
         updateUser(data);
         calcIfLevelUp(user, guild, null);
     }
@@ -190,7 +190,7 @@ public class PlayerLeveling {
             data = new PlayerData(user.getIdLong(), guild.getIdLong(), 0, 0);
 
         }
-        data.setXp(data.getXp() + calcXpToAdd());
+        data.setXp(data.getXp() + calcXpToAdd(guild));
         updateUser(data);
         calcIfLevelUp(user, guild, channel);
     }
@@ -206,7 +206,7 @@ public class PlayerLeveling {
             data = new PlayerData(user.getIdLong(), guild.getIdLong(), 0, 0);
 
         }
-        data.setXp(data.getXp() - calcXpToAdd());
+        data.setXp(data.getXp() - calcXpToAdd(guild));
         updateUser(data);
     }
 
@@ -244,22 +244,29 @@ public class PlayerLeveling {
         if(data.getXp() > (100 * Math.pow(2,(currentLevel-2)))){
             data.setLevel(data.getLevel() + 1);
             updateUser(data);
-            // TODO: UPDATE LEVELING MESSAGE.
             if(channel != null){
                 if(!blackListed.contains(channel.getId())) {
                     sendLevelUpMessage(user, data, channel);
-                    //channel.sendMessage("Leveled up to: " + (currentLevel + 1)).queue();
                 }
             }
 
         }
     }
 
-    public int getACTIVE_MULTIPLIER() {
-        return ACTIVE_MULTIPLIER;
+    public int getMultiplier(Guild guild){
+        if(multipliers.containsKey(guild.getId())) {
+            return multipliers.get(guild.getId()).getMultiplier();
+        }else{
+            return 1;
+        }
     }
-    public void setACTIVE_MULTIPLIER(int ACTIVE_MULTIPLIER) {
-        this.ACTIVE_MULTIPLIER = ACTIVE_MULTIPLIER;
+
+    public MultiplierData getMultiplierData(Guild guild){
+        return  multipliers.get(guild.getId());
+    }
+
+    public void setMultiplier(Guild guild, MultiplierData multiplierData){
+        multipliers.put(guild.getId(), multiplierData);
     }
 
     public void sendInfoImage(User user, PlayerData data, TextChannel channel){
@@ -489,7 +496,7 @@ public class PlayerLeveling {
         thread.start();
     }
 
-    public long calcXpToAdd(){
-        return (long) (random.nextInt(1) + 3) * ACTIVE_MULTIPLIER;
+    public long calcXpToAdd(Guild guild){
+        return (long) (random.nextInt(1) + 3) * getMultiplier(guild);
     }
 }

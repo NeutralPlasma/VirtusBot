@@ -3,6 +3,8 @@ package com.neutralplasma.virtusbot.utils;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class TextUtil {
 
@@ -25,6 +27,28 @@ public class TextUtil {
             return String.format("%d:%02d", minutes, seconds);
         }
     }
+
+    public static String formatTiming(long timing) {
+
+        int weeks = (int) (timing / (1000*60*60*24*7));
+        timing = timing - weeks * 604800 * 1000;
+
+        int days = (int) (timing / (1000*60*60*24));
+        timing = timing - days * 86400 * 1000;
+
+        int hours   = (int) ((timing / (1000*60*60)) % 24);
+        timing = timing - hours * 3600 * 1000;
+
+        int minutes = (int) ((timing / (1000*60)) % 60);
+        timing = timing - hours * 60 * 1000;
+
+        int seconds = (int) (timing / 1000) % 60 ;
+
+
+        return String.format("%d:%02d:%02d:%02d:%02d", weeks, days, hours, minutes, seconds);
+
+    }
+
 
     public static String filter(String input){
         return input.replace("\u202E","")
