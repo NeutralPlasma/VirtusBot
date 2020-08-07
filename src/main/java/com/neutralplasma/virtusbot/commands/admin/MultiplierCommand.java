@@ -25,7 +25,7 @@ public class MultiplierCommand extends AdminCommand {
                 if(args.length > 1){
                     MultiplierData data = playerLeveling.getMultiplierData(event.getGuild());
                     if(data == null){
-                        data = new MultiplierData();
+                        data = new MultiplierData(1, 0);
                     }
                     int multiplier = Integer.parseInt(args[1]);
                     long time;
@@ -39,7 +39,7 @@ public class MultiplierCommand extends AdminCommand {
             } else if(args[0].equalsIgnoreCase("check")){
                 MultiplierData data = playerLeveling.getMultiplierData(event.getGuild());
                 if(data == null){
-                    data = new MultiplierData();
+                    data = new MultiplierData(1, 0);
                 }
                 event.reply("Current multiplier: " + data.getMultiplier());
 

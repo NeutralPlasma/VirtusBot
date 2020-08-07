@@ -152,9 +152,9 @@ public class PlayerLeveling {
         String info = user.getId() + ":" + guild.getId();
         return users.get(info);
     }
-    public void updateUser(PlayerData playerData){
-        String info = playerData.getUserID() + ":" + playerData.getServerID();
-        users.put(info, playerData);
+    public void updateUser(PlayerData data){
+        String info = data.getUserID() + ":" + data.getServerID();
+        users.put(info, data);
     }
     public void addUser(PlayerData playerData){
         String info = playerData.getUserID() + ":" + playerData.getServerID();
@@ -175,7 +175,7 @@ public class PlayerLeveling {
         }
         data.setXp(data.getXp() + calcXpToAdd(guild));
         updateUser(data);
-        calcIfLevelUp(user, guild, null);
+        calcIfLevelUp(user, guild, null, data);
     }
 
     /**
@@ -187,12 +187,12 @@ public class PlayerLeveling {
     public void addXp(User user, Guild guild, TextChannel channel){
         PlayerData data = getUser(user, guild);
         if(data == null){
-            data = new PlayerData(user.getIdLong(), guild.getIdLong(), 0, 0);
+            data = new PlayerData(user.getIdLong(), guild.getIdLong(), 0L, 0);
 
         }
         data.setXp(data.getXp() + calcXpToAdd(guild));
         updateUser(data);
-        calcIfLevelUp(user, guild, channel);
+        calcIfLevelUp(user, guild, channel, data);
     }
 
     /**
@@ -238,8 +238,7 @@ public class PlayerLeveling {
      * @param guild Guild in which to calculate
      * @param channel Channel to which to send LevelUP message
      */
-    public void calcIfLevelUp(User user, Guild guild, TextChannel channel){
-        PlayerData data = getUser(user, guild);
+    public void calcIfLevelUp(User user, Guild guild, TextChannel channel, PlayerData data){
         int currentLevel = data.getLevel();
         if(data.getXp() > (100 * Math.pow(2,(currentLevel-2)))){
             data.setLevel(data.getLevel() + 1);
@@ -255,7 +254,7 @@ public class PlayerLeveling {
 
     public int getMultiplier(Guild guild){
         if(multipliers.containsKey(guild.getId())) {
-            return multipliers.get(guild.getId()).getMultiplier();
+            return multipliers.get(guild.getId()).getActiveMultiplier();
         }else{
             return 1;
         }

@@ -14,7 +14,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 
 import java.awt.*;
-import java.sql.SQLException;
 import java.util.List;
 
 public class ServerDataCmd extends AdminCommand {

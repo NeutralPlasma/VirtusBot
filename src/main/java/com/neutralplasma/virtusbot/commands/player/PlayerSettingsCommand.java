@@ -1,18 +1,13 @@
 package com.neutralplasma.virtusbot.commands.player;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
-import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.neutralplasma.virtusbot.commands.PlayerCommand;
-import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerData;
-import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling;
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettings;
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Member;
 
 import java.awt.*;
 import java.net.URL;
-import java.util.List;
 
 public class PlayerSettingsCommand extends PlayerCommand {
     private PlayerSettingsHandler playerSettingsHandler;

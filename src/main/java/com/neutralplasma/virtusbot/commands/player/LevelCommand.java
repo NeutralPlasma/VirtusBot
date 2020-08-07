@@ -2,17 +2,11 @@ package com.neutralplasma.virtusbot.commands.player;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
-import com.neutralplasma.virtusbot.audio.AudioManager;
-import com.neutralplasma.virtusbot.commands.AudioCommand;
 import com.neutralplasma.virtusbot.commands.PlayerCommand;
 import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerData;
 import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling;
-import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettings;
-import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 
-import java.awt.*;
 import java.util.List;
 
 public class LevelCommand extends PlayerCommand {
@@ -36,7 +30,9 @@ public class LevelCommand extends PlayerCommand {
                 if(data != null) {
                     playerLeveling.sendInfoImage(commandEvent.getAuthor(), data, commandEvent.getTextChannel());
                 }else{
-                    commandEvent.reply("NO DATA FOUND");
+                    data = new PlayerData(commandEvent.getAuthor().getIdLong(), commandEvent.getGuild().getIdLong(), 0L, 0);
+                    playerLeveling.addUser(data);
+                    playerLeveling.sendInfoImage(commandEvent.getAuthor(), data, commandEvent.getTextChannel());
                 }
             }else{
 

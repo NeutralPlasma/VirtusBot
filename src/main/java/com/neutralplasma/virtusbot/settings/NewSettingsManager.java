@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 
 public class NewSettingsManager {
@@ -52,10 +53,10 @@ public class NewSettingsManager {
 
         TextChannel channel;
         try {
-            if(!settings.getString(setting).isEmpty()) {
-                channel = guild.getTextChannelById(settings.getString(setting));
+            if(!settings.getStringData(setting).equalsIgnoreCase("none")) {
+                channel = guild.getTextChannelById(settings.getStringData(setting));
                 if (channel == null) {
-                    channel = guild.getTextChannelById(settings.getLong(setting));
+                    channel = guild.getTextChannelById(settings.getLongData(setting));
                 }
                 return channel;
             }
@@ -70,10 +71,10 @@ public class NewSettingsManager {
 
         Role role;
         try {
-            if (!settings.getString(setting).isEmpty()) {
-                role = guild.getRoleById(settings.getString(setting));
+            if (!settings.getStringData(setting).equalsIgnoreCase("none")) {
+                role = guild.getRoleById(settings.getStringData(setting));
                 if (role == null) {
-                    role = guild.getRoleById(settings.getLong(setting));
+                    role = guild.getRoleById(settings.getLongData(setting));
                 }
                 return role;
             }
@@ -85,8 +86,8 @@ public class NewSettingsManager {
 
     public VoiceChannel getVoiceChannel(Guild guild, String setting){
         NewSettings settings = getSettings(guild);
-        if(!settings.getString(setting).isEmpty()) {
-            return guild.getVoiceChannelById(settings.getString(setting));
+        if(!settings.getStringData(setting).equalsIgnoreCase("none")) {
+            return guild.getVoiceChannelById(settings.getStringData(setting));
         }
         return null;
     }
@@ -94,21 +95,21 @@ public class NewSettingsManager {
     public String getData(Guild guild, String setting){
         NewSettings settings = getSettings(guild);
 
-        return settings.getString(setting);
+        return settings.getStringData(setting);
     }
 
 
     public NewSettings getSettings(Guild guild){
         NewSettings settings = loadedSettings.get(guild.toString());
         if(settings == null){
-            settings = new NewSettings();
+            settings = new NewSettings(new HashMap<>(), new HashMap<>(), new HashMap<>());
             try {
                 HashMap<String, String> dataset=  getAllSettings(guild.getId(), "ServerSettings");
                 for(String string : dataset.keySet()){
                     settings.addStringData(string, dataset.get(string));
                 }
             }catch (SQLException error){
-                settings = new NewSettings();
+                settings = new NewSettings(new HashMap<>(), new HashMap<>(), new HashMap<>());
             }
         }
         loadedSettings.put(guild.getId(), settings);
@@ -119,10 +120,7 @@ public class NewSettingsManager {
         for (Guild guild : jda.getGuilds()){
             try {
                 HashMap<String, String> settings = getAllSettings(guild.getId(), "ServerSettings");
-                NewSettings settings1 = new NewSettings();
-                for(String string : settings.keySet()){
-                    settings1.addStringData(string, settings.get(string));
-                }
+                NewSettings settings1 = new NewSettings( settings, new HashMap<>(), new HashMap<>());
                 loadedSettings.put(guild.getId(), settings1);
             }catch (SQLException error){
                 error.printStackTrace();
