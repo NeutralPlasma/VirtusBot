@@ -135,7 +135,7 @@ object VirtusBot {
         val cb = CommandClientBuilder()
                 .setPrefix(prefix)
                 .setOwnerId(Info.AUTHOR_ID)
-                .setEmojis("", "", "")
+                .setEmojis("\u2705", "\u26A0", "\u274C")
                 .setHelpWord("help")
                 .setLinkedCacheSize(200)
                 .setGuildSettingsManager(guildSettingsManager)

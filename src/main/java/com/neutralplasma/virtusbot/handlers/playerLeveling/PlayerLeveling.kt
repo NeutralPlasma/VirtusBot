@@ -20,6 +20,8 @@ import java.net.URL
 import java.sql.SQLException
 import java.util.*
 import javax.imageio.ImageIO
+import kotlin.math.pow
+import kotlin.math.roundToInt
 
 class PlayerLeveling(private val storage: StorageHandler, private val playerSettingsHandler: PlayerSettingsHandler) {
     private val random = Random()
@@ -176,9 +178,9 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
      * @param data PlayerLeveling data.
      * @return returns needed xp for levelup.
      */
-    fun getNeededXP(data: PlayerData): Double {
+    private fun getNeededXP(data: PlayerData): Double {
         val currentLevel = data.level
-        return 100 * Math.pow(2.0, (currentLevel - 2).toDouble())
+        return (currentLevel - 2).toDouble().pow(2.0) * 100
     }
 
     /**
@@ -186,9 +188,9 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
      * @param data PlayerLeveling data.
      * @return Returns xp needed for 1 level below users level.
      */
-    fun previous(data: PlayerData): Double {
+    private fun previous(data: PlayerData): Double {
         val prevLevel = data.level - 1
-        return 100 * Math.pow(2.0, (prevLevel - 2).toDouble())
+        return (prevLevel - 2).toDouble().pow(2.0) * 100
     }
 
     /**
@@ -199,7 +201,7 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
      */
     fun calcIfLevelUp(user: User, guild: Guild?, channel: TextChannel?, data: PlayerData) {
         val currentLevel = data.level
-        if (data.xp > 100 * Math.pow(2.0, (currentLevel - 2).toDouble())) {
+        if (data.xp > (currentLevel - 2).toDouble().pow(2.0) * 100) {
             data.level = data.level + 1
             updateUser(data)
             if (channel != null) {
@@ -244,8 +246,10 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
                         color2 = playerSettings.getColor2()
                     }
                 }
-                val progressBar = Math.max(Math.round((data.xp - previous(data)) / (getNeededXP(data) - previous(data)) * 360), 0).toDouble()
-                val progress = Math.max(Math.round((data.xp - previous(data)) / (getNeededXP(data) - previous(data)) * 100), 0).toDouble()
+                val progressBar = ((data.xp - previous(data)) / (getNeededXP(data) - previous(data)) * 360).roundToInt().coerceAtLeast(0).toDouble()
+                val progress = ((data.xp - previous(data)) / (getNeededXP(data) - previous(data)) * 100).roundToInt().coerceAtLeast(0).toDouble()
+
+
                 var url = URL("http://images.sloempire.eu/Developing/Level-Banner-01.png")
                 var background = ImageIO.read(url.openStream())
                 background = Resizer.AVERAGE.resize(background, width, height)

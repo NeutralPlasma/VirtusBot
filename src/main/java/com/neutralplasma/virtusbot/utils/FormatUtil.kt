@@ -38,12 +38,10 @@ object FormatUtil {
         var out = " Multiple text channels found matching \"$query\":"
         var i = 0
         while (i < 6 && i < list.size) {
-            out += """
- - ${list[i].name} (<#${list[i].id}>)"""
+            out += "- ${list[i].name} (<#${list[i].id}>)"
             i++
         }
-        if (list.size > 6) out += """
-**And ${list.size - 6} more...**"""
+        if (list.size > 6) out += "**And ${list.size - 6} more...**"
         return out
     }
 
@@ -51,12 +49,10 @@ object FormatUtil {
         var out = " Multiple voice channels found matching \"$query\":"
         var i = 0
         while (i < 6 && i < list.size) {
-            out += """
- - ${list[i].name} (ID:${list[i].id})"""
+            out += "- ${list[i].name} (ID:${list[i].id})"
             i++
         }
-        if (list.size > 6) out += """
-**And ${list.size - 6} more...**"""
+        if (list.size > 6) out += "**And ${list.size - 6} more...**"
         return out
     }
 
@@ -65,12 +61,10 @@ object FormatUtil {
         var out = " Multiple text channels found matching \"$query\":"
         var i = 0
         while (i < 6 && i < list.size) {
-            out += """
- - ${list[i].name} (ID:${list[i].id})"""
+            out += "- ${list[i].name} (ID:${list[i].id})"
             i++
         }
-        if (list.size > 6) out += """
-**And ${list.size - 6} more...**"""
+        if (list.size > 6) out += "**And ${list.size - 6} more...**"
         return out
     }
 
