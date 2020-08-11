@@ -1,1 +1,2 @@
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/NeutralPlasma/VirtusBot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/NeutralPlasma/VirtusBot/alerts/)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/NeutralPlasma/VirtusBot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/NeutralPlasma/VirtusBot/alerts/) [![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/NeutralPlasma/VirtusBot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/NeutralPlasma/VirtusBot/context:java)
+[![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/NeutralPlasma/VirtusBot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/NeutralPlasma/VirtusBot/context:java)
