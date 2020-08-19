@@ -4,6 +4,7 @@ import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
 import com.neutralplasma.virtusbot.utils.GraphicUtil.dye
 import com.neutralplasma.virtusbot.utils.Resizer
+import com.neutralplasma.virtusbot.utils.TextUtil
 import com.neutralplasma.virtusbot.utils.TextUtil.makeRoundedCorner
 import com.neutralplasma.virtusbot.utils.TextUtil.sendMessage
 import net.dv8tion.jda.api.entities.Guild
@@ -173,25 +174,15 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
         updateUser(data)
     }
 
-    /**
-     *
-     * @param data PlayerLeveling data.
-     * @return returns needed xp for levelup.
-     */
-    private fun getNeededXP(data: PlayerData): Double {
-        val currentLevel = data.level
-        return (currentLevel - 2).toDouble().pow(2.0) * 100
-    }
 
     /**
-     *
-     * @param data PlayerLeveling data.
-     * @return Returns xp needed for 1 level below users level.
+     * @param level Level the user is currently at.
      */
-    private fun previous(data: PlayerData): Double {
-        val prevLevel = data.level - 1
-        return (prevLevel - 2).toDouble().pow(2.0) * 100
+    private fun getNeededXP(level: Int): Double{
+        return ((level-1).toDouble().pow(2.0) * 100).coerceAtLeast(0.0)
     }
+
+
 
     /**
      *
@@ -200,8 +191,7 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
      * @param channel Channel to which to send LevelUP message
      */
     fun calcIfLevelUp(user: User, guild: Guild?, channel: TextChannel?, data: PlayerData) {
-        val currentLevel = data.level
-        if (data.xp > (currentLevel - 2).toDouble().pow(2.0) * 100) {
+        if (data.xp > getNeededXP(data.level)) {
             data.level = data.level + 1
             updateUser(data)
             if (channel != null) {
@@ -246,9 +236,8 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
                         color2 = playerSettings.getColor2()
                     }
                 }
-                val progressBar = ((data.xp - previous(data)) / (getNeededXP(data) - previous(data)) * 360).roundToInt().coerceAtLeast(0).toDouble()
-                val progress = ((data.xp - previous(data)) / (getNeededXP(data) - previous(data)) * 100).roundToInt().coerceAtLeast(0).toDouble()
-
+                val progressBar = ((data.xp - getNeededXP(data.level-1)) / (getNeededXP(data.level) - getNeededXP(data.level-1)) * 360).roundToInt().coerceAtLeast(0).toDouble()
+                val progress = ((data.xp - getNeededXP(data.level-1)) / (getNeededXP(data.level) - getNeededXP(data.level-1)) * 100).roundToInt().coerceAtLeast(0).toDouble()
 
                 var url = URL("http://images.sloempire.eu/Developing/Level-Banner-01.png")
                 var background = ImageIO.read(url.openStream())
@@ -318,7 +307,7 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
                 g2d.drawString(level, (1006.23 - size / 2).toFloat(), 230.32.toFloat() + textSize / 4)
                 // xp needed
                 g2d.color = Color.gray
-                val needed = (getNeededXP(data) - data.xp).toString() + "xp"
+                val needed = (getNeededXP(data.level) - data.xp).toString() + "xp"
                 size = g2d.fontMetrics.stringWidth(needed)
                 g2d.drawString(needed, (1006.23 - size / 2).toFloat(), 264.32.toFloat() + textSize / 4)
                 val text = "to go"
