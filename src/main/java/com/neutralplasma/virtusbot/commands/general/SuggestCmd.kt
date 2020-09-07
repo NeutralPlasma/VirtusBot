@@ -21,27 +21,19 @@ class SuggestCmd(newSettingsManager: NewSettingsManager, localeHandler: LocaleHa
         event.message.delete()
         val suggestChannel = newSettingsManager.getTextChannel(guild, "SUGGEST_CHANNEL")
         if (suggestChannel != null) {
-            createSuggestion(suggestChannel, event.author, arg, guild)
+            createSuggestion(suggestChannel, event.author, arg)
         } else {
             val eb = EmbedBuilder()
-            val field_title = localeHandler.getLocale(guild, "ERROR_FIELD_TITLE")
-            val title = localeHandler.getLocale(guild, "ERROR_TITLE")
-            val content = localeHandler.getLocale(guild, "ERROR_WRONG_NOCHANNEL")
-            eb.setTitle(title)
-            eb.addField(field_title, content, false)
+            eb.addField("ERROR", "Channel for suggestions doesn't exist please contact Administrator.", false)
             eb.setColor(Color.orange)
             event.channel.sendMessage(eb.build()).queue()
         }
     }
 
-    fun createSuggestion(channel: TextChannel, user: User, suggestion: String, guild: Guild?) {
+    fun createSuggestion(channel: TextChannel, user: User, suggestion: String) {
         val eb = EmbedBuilder()
-        val field_title = localeHandler.getLocale(guild!!, "SUGGEST_FIELD_TITLE")
-        val title = localeHandler.getLocale(guild, "SUGGEST_TITLE")
-        val field_title2 = localeHandler.getLocale(guild, "SUGGEST_TITLE_OWNER")
-        eb.setTitle(title)
-        eb.addField(field_title, "`$suggestion`", false)
-        eb.addField(field_title2, user.asMention, false)
+        eb.addField("SUGGESTION", "`$suggestion`", false)
+        eb.addField("Suggested by:", user.asMention, false)
         eb.setColor(Color.orange)
         val callback = Consumer { response: Message ->
             response.addReaction("\u2705").queue()

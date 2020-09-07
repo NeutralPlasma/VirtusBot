@@ -20,8 +20,7 @@ class CreateTicketCMD(ticketStorage: TicketStorage, bot: Bot, newSettingsManager
     private val localeHandler: LocaleHandler
     override fun execute(event: CommandEvent) {
         if (ticketStorage.getTicketChannel(event.author.id) == null) {
-            val content = localeHandler.getLocale(event.guild, "TICKET_CREATE_MESSAGE")
-            event.reply(content)
+            event.reply("Creating the ticket...")
             createTicket(event.member, event.guild)
         } else {
             event.reply("You already have an open ticket!")
@@ -42,9 +41,9 @@ class CreateTicketCMD(ticketStorage: TicketStorage, bot: Bot, newSettingsManager
             updatePerms(member, newChannel, true)
             if (role != null) {
                 updatePerms(role, newChannel, true)
-                sendTicketMessage(newChannel, member, role, guild)
+                sendTicketMessage(newChannel, member, role)
             } else {
-                sendTicketMessage(newChannel, member, null, guild)
+                sendTicketMessage(newChannel, member, null)
             }
         }
     }
@@ -111,15 +110,12 @@ class CreateTicketCMD(ticketStorage: TicketStorage, bot: Bot, newSettingsManager
         }
     }
 
-    fun sendTicketMessage(channel: TextChannel, member: Member, supportRole: Role?, guild: Guild?) {
+    fun sendTicketMessage(channel: TextChannel, member: Member, supportRole: Role?) {
         val eb = EmbedBuilder()
-        eb.setTitle("Ticket")
-        val content = localeHandler.getLocale(guild!!, "TICKET_INFO_MESSAGE")
-        val field_title = localeHandler.getLocale(guild, "TICKET_INFO_FIELD_TITLE")
         if (supportRole != null) {
-            eb.addField(field_title, content + member.asMention + supportRole.asMention, false)
+            eb.addField("Ticket:", "Hello how can we help you?" + member.asMention + supportRole.asMention, false)
         } else {
-            eb.addField(field_title, content + member.asMention
+            eb.addField("Ticket:", "Hello how can we help you?" + member.asMention
                     , false)
         }
         eb.setColor(Color.RED)

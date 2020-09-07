@@ -109,7 +109,6 @@ object VirtusBot {
         // admin
         commands.add(ServerDataCmd(newSettingsManager, localeHandler, playerLeveling, storageHandler, playerSettingsHandler))
         commands.add(SetSuggestCmd(newSettingsManager, localeHandler))
-        commands.add(VoteCommand(localeHandler))
         commands.add(SayCommand())
         commands.add(MultiplierCommand(playerLeveling))
 

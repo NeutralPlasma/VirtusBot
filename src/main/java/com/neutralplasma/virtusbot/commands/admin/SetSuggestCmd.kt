@@ -13,16 +13,11 @@ class SetSuggestCmd(newSettingsManager: NewSettingsManager, localeHandler: Local
     private val localeHandler: LocaleHandler
     override fun execute(commandEvent: CommandEvent) {
         commandEvent.message.delete().queue()
-        var content = localeHandler.getLocale(commandEvent.guild, "SUGGEST_CREATE_CONTENT")
-        val field_title = localeHandler.getLocale(commandEvent.guild, "SUGGEST_CREATE_FIELD_TITLE")
-        val title = localeHandler.getLocale(commandEvent.guild, "SUGGEST_CREATE_TITLE")
-        if(content != null) {
-            content = content.replace("{prefix}", Info.PREFIX!!, true)
-        }
+
         val eb = EmbedBuilder()
-        eb.setTitle(title)
-        eb.addField(field_title, content, false)
+        eb.addField("Suggestion", "Type ${Info.PREFIX}suggest <suggestion> - to create a new suggestion.", false)
         eb.setColor(Color.orange)
+
         try {
             newSettingsManager.addStringData(commandEvent.guild, "SUGGEST_CHANNEL", commandEvent.textChannel.id)
             //settingsManager.getSettings(commandEvent.getGuild()).setSuggestId(commandEvent.getChannel().getIdLong());

@@ -17,7 +17,6 @@ class CloseTicketCMD(ticketStorage: TicketStorage, localeHandler: LocaleHandler)
     override fun execute(event: CommandEvent) {
         val ticketid = ticketStorage.getTicketChannel(event.channel.id)
         if (ticketid != null) {
-            event.reply("TEST")
             sendMessage(event.textChannel, event.guild, event.author, ticketid)
         } else {
             event.reply("You don't have an ticket.")
@@ -26,14 +25,11 @@ class CloseTicketCMD(ticketStorage: TicketStorage, localeHandler: LocaleHandler)
 
     fun sendMessage(channel: TextChannel, guild: Guild?, user: User?, info: TicketInfo) {
         val eb = EmbedBuilder()
-        val content = localeHandler.getLocale(guild!!, "TICKET_CLOSE_MESSAGE")
-        val field_title = localeHandler.getLocale(guild, "TICKET_CLOSE_FIELD_TITLE")
-        val title = localeHandler.getLocale(guild, "TICKET_CLOSE_TITLE")
-        eb.setTitle(title)
-        eb.addField(field_title, content, false)
+        eb.addField("CLOSE TICKET?", "React with ✔ to close the ticket.", false)
+
         val message = channel.sendMessage(eb.build()).complete()
         message.addReaction("✔").queue()
-        channel.sendMessage("Test").queue()
+
         val reactionUtil = AbstractReactionUtil(user!!, {}, message.jda, "✔", message.id)
 
         reactionUtil.onClose = {

@@ -12,13 +12,8 @@ class CreateTicketChannelCmd(settingsManager: NewSettingsManager, localeHandler:
     private val localeHandler: LocaleHandler
     override fun execute(commandEvent: CommandEvent) {
         commandEvent.message.delete().queue()
-        val content = localeHandler.getLocale(commandEvent.guild, "TICKET_HELP_CREATE_REACT_CONTENT")
-        val field_title = localeHandler.getLocale(commandEvent.guild, "TICKET_HELP_CREATE_REACT_FIELD_TITLE")
-        val title = localeHandler.getLocale(commandEvent.guild, "TICKET_HELP_CREATE_REACT_FIELD_TITLE")
         val eb = EmbedBuilder()
-        eb.setTitle(title)
-        //eb.addField("React", "Reactaj z \uD83D\uDCAC, da ustvariš pogovor za pomoč.", false);
-        eb.addField(field_title, content, false)
+        eb.addField("Ticket creation:", "React with: \uD83D\uDCAC to create the ticket channel", false)
         eb.setColor(Color.orange)
         try {
             settingsManager.addStringData(commandEvent.guild, "TICKET_CHANNEL", commandEvent.channel.id)
