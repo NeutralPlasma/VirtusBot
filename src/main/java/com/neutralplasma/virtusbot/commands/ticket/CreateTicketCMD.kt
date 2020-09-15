@@ -18,12 +18,12 @@ class CreateTicketCMD(ticketStorage: TicketStorage, bot: Bot, newSettingsManager
     private val bot: Bot
     private val newSettingsManager: NewSettingsManager
     private val localeHandler: LocaleHandler
-    override fun execute(event: CommandEvent) {
-        if (ticketStorage.getTicketChannel(event.author.id) == null) {
-            event.reply("Creating the ticket...")
-            createTicket(event.member, event.guild)
+    override fun execute(commandEvent: CommandEvent) {
+        if (ticketStorage.getTicketChannel(commandEvent.author.id) == null) {
+            commandEvent.reply("Creating the ticket...")
+            createTicket(commandEvent.member, commandEvent.guild)
         } else {
-            event.reply("You already have an open ticket!")
+            commandEvent.reply("You already have an open ticket!")
         }
     }
 

@@ -14,16 +14,16 @@ import net.dv8tion.jda.api.entities.User
 class CloseTicketCMD(ticketStorage: TicketStorage, localeHandler: LocaleHandler) : TicketCommand() {
     private val ticketStorage: TicketStorage
     private val localeHandler: LocaleHandler
-    override fun execute(event: CommandEvent) {
-        val ticketid = ticketStorage.getTicketChannel(event.channel.id)
+    override fun execute(commandEvent: CommandEvent) {
+        val ticketid = ticketStorage.getTicketChannel(commandEvent.channel.id)
         if (ticketid != null) {
-            sendMessage(event.textChannel, event.guild, event.author, ticketid)
+            sendMessage(commandEvent.textChannel, commandEvent.author, ticketid)
         } else {
-            event.reply("You don't have an ticket.")
+            commandEvent.reply("You don't have an ticket.")
         }
     }
 
-    fun sendMessage(channel: TextChannel, guild: Guild?, user: User?, info: TicketInfo) {
+    fun sendMessage(channel: TextChannel, user: User?, info: TicketInfo) {
         val eb = EmbedBuilder()
         eb.addField("CLOSE TICKET?", "React with ✔ to close the ticket.", false)
 

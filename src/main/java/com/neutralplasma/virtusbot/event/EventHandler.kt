@@ -49,7 +49,7 @@ class EventHandler(private val newSettingsManager: NewSettingsManager, private v
                 if (event.message.isWebhookMessage || event.member!!.user.isBot) {
                     return
                 }
-                playerLeveling.addXp(event.member!!.user, event.guild, event.textChannel)
+                playerLeveling.addXp(event.member!!.user, event.guild)
             }
         } else if (gevent is ReadyEvent) {
             if (!setuped) {

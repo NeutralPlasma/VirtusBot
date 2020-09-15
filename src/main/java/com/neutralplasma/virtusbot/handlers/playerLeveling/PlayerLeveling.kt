@@ -1,6 +1,7 @@
 package com.neutralplasma.virtusbot.handlers.playerLeveling
 
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler
+import com.neutralplasma.virtusbot.settings.NewSettingsManager
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
 import com.neutralplasma.virtusbot.utils.GraphicUtil.dye
 import com.neutralplasma.virtusbot.utils.Resizer
@@ -24,7 +25,7 @@ import javax.imageio.ImageIO
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-class PlayerLeveling(private val storage: StorageHandler, private val playerSettingsHandler: PlayerSettingsHandler) {
+class PlayerLeveling(private val storage: StorageHandler, private val playerSettingsHandler: PlayerSettingsHandler, private val settings: NewSettingsManager) {
     private val random = Random()
     private val blackListed = ArrayList<String>()
     private val tableName = "LevelingData"
@@ -133,7 +134,7 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
      * @param user User of discord.
      * @param guild Guild in which you want to add xp.
      */
-    @Deprecated("")
+
     fun addXp(user: User, guild: Guild) {
         var data = getUser(user, guild)
         if (data == null) {
@@ -141,24 +142,9 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
         }
         data.xp = data.xp + calcXpToAdd(guild)
         updateUser(data)
-        calcIfLevelUp(user, guild, null, data)
+        calcIfLevelUp(user, guild, data)
     }
 
-    /**
-     *
-     * @param user User of discord.
-     * @param guild Guild in which you want to add xp.
-     * @param channel Text channel in which to send levelUP message
-     */
-    fun addXp(user: User, guild: Guild, channel: TextChannel?) {
-        var data = getUser(user, guild)
-        if (data == null) {
-            data = PlayerData(user.idLong, guild.idLong, 0L, 0)
-        }
-        data.xp = data.xp + calcXpToAdd(guild)
-        updateUser(data)
-        calcIfLevelUp(user, guild, channel, data)
-    }
 
     /**
      *
@@ -188,12 +174,17 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
      *
      * @param user User of discord.
      * @param guild Guild in which to calculate
-     * @param channel Channel to which to send LevelUP message
+     * @param data PlayerData
      */
-    fun calcIfLevelUp(user: User, guild: Guild?, channel: TextChannel?, data: PlayerData) {
-        if (data.xp > getNeededXP(data.level)) {
+    fun calcIfLevelUp(user: User, guild: Guild?, data: PlayerData) {
+        var leveledUp = false
+        while(data.xp > getNeededXP(data.level)){
             data.level = data.level + 1
+            leveledUp = true
+        }
+        if(leveledUp && guild != null){
             updateUser(data)
+            val channel = settings.getTextChannel(guild, "LEVELUP_MESSAGES")
             if (channel != null) {
                 if (!blackListed.contains(channel.id)) {
                     sendLevelUpMessage(user, data, channel)
