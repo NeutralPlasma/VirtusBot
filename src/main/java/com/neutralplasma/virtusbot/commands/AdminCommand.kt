@@ -10,8 +10,8 @@ import java.util.function.Predicate
 abstract class AdminCommand : Command() {
     init {
         this.category = Category("Admin", Predicate { event: CommandEvent ->
-            blackList!!.isBlackListed(event.author.id)
-                    ||
+            !blackList.isBlackListed(event.author.id)
+                    &&
             event.author.id == event.client.ownerId
                     ||
             event.member.hasPermission(Permission.MANAGE_SERVER)
