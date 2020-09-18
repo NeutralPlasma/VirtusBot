@@ -48,7 +48,7 @@ object VirtusBot {
     var commands = ArrayList<Command>()
     lateinit var storageHandler: StorageHandler
     @JvmStatic
-    var blackList: BlackList? = null
+    lateinit var blackList: BlackList
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -62,7 +62,7 @@ object VirtusBot {
         val ticketStorage = TicketStorage(storageHandler)
         val newSettingsManager = NewSettingsManager(storageHandler)
 
-        // DATASTORAGE SETUP
+        // DATASTORAGE - TODO: SETUP NEEDS TO BE REDONE!!!!!!!!!!!
         val playerSettingsHandler = PlayerSettingsHandler(storageHandler)
         val playerLeveling = PlayerLeveling(storageHandler, playerSettingsHandler, newSettingsManager)
 

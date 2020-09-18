@@ -7,7 +7,7 @@ import java.util.function.Predicate
 
 abstract class PlayerCommand : Command() {
     init {
-        this.category = Category("Player", Predicate { event: CommandEvent -> !blackList!!.isBlackListed(event.author.id) })
+        this.category = Category("Player", Predicate { event: CommandEvent -> !blackList.isBlackListed(event.author.id) })
         guildOnly = true
     }
 }

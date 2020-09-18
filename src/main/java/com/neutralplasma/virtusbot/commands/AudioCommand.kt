@@ -7,8 +7,8 @@ import java.util.function.Predicate
 
 abstract class AudioCommand : Command() {
     init {
-        this.category = Category("Music", label@ Predicate { event: CommandEvent ->
-            !blackList!!.isBlackListed(event.author.id)
+        this.category = Category("Music", Predicate { event: CommandEvent ->
+            !blackList.isBlackListed(event.author.id)
         })
         guildOnly = true
     }

@@ -9,15 +9,20 @@ class BlackListCommand : OwnerCommand() {
     override fun execute(commandEvent: CommandEvent) {
         val guild = commandEvent.guild
         val args = commandEvent.args.split(" ".toRegex()).toTypedArray()
-        if (args.size > 0) {
+        if (args.isNotEmpty()) {
             if (args[0].equals("add", ignoreCase = true)) {
                 val members = FinderUtil.findMembers(args[1], guild)
                 if (members.isEmpty()) {
                     commandEvent.reply("No user found!")
                 } else if (members.size > 1) {
-                    commandEvent.reply(commandEvent.client.warning + "You need to specify just 1 user!")
+                    var list = "Blacklisted: "
+                    for(member in members){
+                        blackList.addToBlackList(member.id)
+                        list += "${member.id}, "
+                    }
+                    commandEvent.reply(list)
                 } else {
-                    blackList!!.addToBlackList(members[0].id)
+                    blackList.addToBlackList(members[0].id)
                     commandEvent.reply("Added to blacklist: " + members[0].id)
                 }
             }
@@ -26,9 +31,14 @@ class BlackListCommand : OwnerCommand() {
                 if (members.isEmpty()) {
                     commandEvent.reply("No user found!")
                 } else if (members.size > 1) {
-                    commandEvent.reply(commandEvent.client.warning + "You need to specify just 1 user!")
+                    var list = "Removed: "
+                    for(member in members){
+                        blackList.removeFromBlackList(member.id)
+                        list += "${member.id}, "
+                    }
+                    commandEvent.reply(list)
                 } else {
-                    blackList!!.removeFromBlackList(members[0].id)
+                    blackList.removeFromBlackList(members[0].id)
                     commandEvent.reply("Removed from blacklist: " + members[0].id)
                 }
             }
@@ -37,9 +47,19 @@ class BlackListCommand : OwnerCommand() {
                 if (members.isEmpty()) {
                     commandEvent.reply("No user found!")
                 } else if (members.size > 1) {
-                    commandEvent.reply(commandEvent.client.warning + "You need to specify just 1 user!")
+
+                    var list = "Removed: "
+                    for(member in members){
+                        if(blackList.isBlackListed(member.id)){
+                            list += "${member.id} - Blacklisted, \n"
+                        }else{
+                            list += "${member.id} - Not blacklisted, \n"
+                        }
+                    }
+                    commandEvent.reply(list)
+
                 } else {
-                    if (blackList!!.isBlackListed(members[0].id)) {
+                    if (blackList.isBlackListed(members[0].id)) {
                         commandEvent.reply("User is blacklisted!")
                     } else {
                         commandEvent.reply("User isn't blacklisted!")
@@ -51,7 +71,7 @@ class BlackListCommand : OwnerCommand() {
 
     init {
         name = "blacklist"
-        help = "Owner blacklist."
-        arguments = "<SUBCOMMAND>"
+        help = "Blacklist user from using the bot."
+        arguments = "<add,remove,check>"
     }
 }
