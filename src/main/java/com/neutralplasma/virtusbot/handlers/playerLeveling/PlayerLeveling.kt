@@ -7,6 +7,7 @@ import com.neutralplasma.virtusbot.utils.FileUtil
 import com.neutralplasma.virtusbot.utils.GraphicUtil.dye
 import com.neutralplasma.virtusbot.utils.Resizer
 import com.neutralplasma.virtusbot.utils.GraphicUtil.makeRoundedCorner
+import com.neutralplasma.virtusbot.utils.TextUtil
 import com.neutralplasma.virtusbot.utils.TextUtil.sendMessage
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.TextChannel
@@ -63,36 +64,39 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
     fun syncUsers() {
         val data = HashMap(toUpdate)
         toUpdate.clear()
+        var x = 0
         storage.connection.use { connection ->
-
             //val statement = "DELETE FROM $tableName;"
             //connection!!.prepareStatement(statement).use { preparedStatement -> preparedStatement.execute() }
             if(connection == null) throw SQLException()
+
             for (udata in data.values) {
 
-                if(udata.remove){
-                    val statement2 = "DELETE FROM $tableName WHERE userID = ? AND guildID = ?"
-                    connection.prepareStatement(statement2).use { preparedStatement ->
-                        preparedStatement.setLong(1, udata.data.userID)
-                        preparedStatement.setLong(1, udata.data.serverID)
-                        preparedStatement.execute()
-                    }
-                }else{
-                    val statement2 = "INSERT INTO " + tableName + "(" +
-                            "userID," +
-                            "guildID," +
-                            "xp," +
-                            "level) VALUES (?, ?, ?, ?)"
-                    connection.prepareStatement(statement2).use { preparedStatement ->
-                        preparedStatement.setLong(1, udata.data.userID)
-                        preparedStatement.setLong(2, udata.data.serverID)
-                        preparedStatement.setLong(3, udata.data.xp)
-                        preparedStatement.setInt(4, udata.data.level)
-                        preparedStatement.execute()
-                    }
+
+                val statement1 = "DELETE FROM $tableName WHERE userID = ? AND guildID = ?"
+                connection.prepareStatement(statement1).use { preparedStatement ->
+                    preparedStatement.setLong(1, udata.data.userID)
+                    preparedStatement.setLong(2, udata.data.serverID)
+                    preparedStatement.execute()
                 }
+
+
+                val statement2 = "INSERT INTO " + tableName + "(" +
+                        "userID," +
+                        "guildID," +
+                        "xp," +
+                        "level) VALUES (?, ?, ?, ?)"
+                connection.prepareStatement(statement2).use { preparedStatement ->
+                    preparedStatement.setLong(1, udata.data.userID)
+                    preparedStatement.setLong(2, udata.data.serverID)
+                    preparedStatement.setLong(3, udata.data.xp)
+                    preparedStatement.setInt(4, udata.data.level)
+                    preparedStatement.execute()
+                }
+                x++
             }
         }
+        sendMessage("Synced: $x users.")
     }
 
     /**

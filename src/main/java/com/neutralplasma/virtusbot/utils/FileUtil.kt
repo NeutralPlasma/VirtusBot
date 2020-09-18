@@ -28,14 +28,14 @@ object FileUtil {
     @JvmStatic
     fun getImage(path: String): BufferedImage{
         val image = storedImages[path]
-        if(image != null){
-            return image
+        return if(image != null){
+            image
         }else {
             val image2 = ImageIO.read(VirtusBot.javaClass.getResource("/resources/images/$path"))
             if (image2 != null) {
                 storedImages[path] = image2
             }
-            return image2
+            image2
         }
     }
 
