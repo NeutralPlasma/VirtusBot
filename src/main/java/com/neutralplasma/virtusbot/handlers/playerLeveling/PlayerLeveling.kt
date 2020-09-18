@@ -5,8 +5,7 @@ import com.neutralplasma.virtusbot.settings.NewSettingsManager
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
 import com.neutralplasma.virtusbot.utils.GraphicUtil.dye
 import com.neutralplasma.virtusbot.utils.Resizer
-import com.neutralplasma.virtusbot.utils.TextUtil
-import com.neutralplasma.virtusbot.utils.TextUtil.makeRoundedCorner
+import com.neutralplasma.virtusbot.utils.GraphicUtil.makeRoundedCorner
 import com.neutralplasma.virtusbot.utils.TextUtil.sendMessage
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.TextChannel
@@ -31,6 +30,10 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
     private val tableName = "LevelingData"
     private val multipliers = HashMap<String, MultiplierData?>()
     var users = HashMap<String, PlayerData>()
+
+
+    var toUpdate = HashMap<String, UpdateData>() // which users to update on update event.
+
     var updatingTask = Runnable {
         try {
             syncUsers()
@@ -57,23 +60,35 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
      */
     @Throws(SQLException::class)
     fun syncUsers() {
-        val data = HashMap(users)
+        val data = HashMap(toUpdate)
+        toUpdate.clear()
         storage.connection.use { connection ->
-            val statement = "DELETE FROM $tableName;"
-            connection!!.prepareStatement(statement).use { preparedStatement -> preparedStatement.execute() }
-            for (userinfo in data.keys) {
-                val udata = data[userinfo]
-                val statement2 = "INSERT INTO " + tableName + "(" +
-                        "userID," +
-                        "guildID," +
-                        "xp," +
-                        "level) VALUES (?, ?, ?, ?)"
-                connection.prepareStatement(statement2).use { preparedStatement ->
-                    preparedStatement.setLong(1, udata!!.userID)
-                    preparedStatement.setLong(2, udata.serverID)
-                    preparedStatement.setLong(3, udata.xp)
-                    preparedStatement.setInt(4, udata.level)
-                    preparedStatement.execute()
+
+            //val statement = "DELETE FROM $tableName;"
+            //connection!!.prepareStatement(statement).use { preparedStatement -> preparedStatement.execute() }
+            if(connection == null) throw SQLException()
+            for (udata in data.values) {
+
+                if(udata.remove){
+                    val statement2 = "DELETE FROM $tableName WHERE userID = ? AND guildID = ?"
+                    connection.prepareStatement(statement2).use { preparedStatement ->
+                        preparedStatement.setLong(1, udata.data.userID)
+                        preparedStatement.setLong(1, udata.data.serverID)
+                        preparedStatement.execute()
+                    }
+                }else{
+                    val statement2 = "INSERT INTO " + tableName + "(" +
+                            "userID," +
+                            "guildID," +
+                            "xp," +
+                            "level) VALUES (?, ?, ?, ?)"
+                    connection.prepareStatement(statement2).use { preparedStatement ->
+                        preparedStatement.setLong(1, udata.data.userID)
+                        preparedStatement.setLong(2, udata.data.serverID)
+                        preparedStatement.setLong(3, udata.data.xp)
+                        preparedStatement.setInt(4, udata.data.level)
+                        preparedStatement.execute()
+                    }
                 }
             }
         }
@@ -119,14 +134,28 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
         return users[info]
     }
 
+
+    /**
+     * Update existing user in database
+     *
+     * @param data updated PlayerData.
+     */
     fun updateUser(data: PlayerData) {
         val info = data.userID.toString() + ":" + data.serverID
         users[info] = data
+        toUpdate[info] = UpdateData(data, true)
     }
 
+
+    /**
+     * Add unregistered user to data.
+     *
+     * @param playerData PlayerData???
+     */
     fun addUser(playerData: PlayerData) {
         val info = playerData.userID.toString() + ":" + playerData.serverID
         users[info] = playerData
+        toUpdate[info] = UpdateData(playerData, false)
     }
 
     /**

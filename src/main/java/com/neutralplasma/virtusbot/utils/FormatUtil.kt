@@ -67,8 +67,4 @@ object FormatUtil {
         if (list.size > 6) out += "**And ${list.size - 6} more...**"
         return out
     }
-
-    fun filter(input: String): String {
-        return input.replace("@everyone", "@\u0435veryone").replace("@here", "@h\u0435re").trim { it <= ' ' } // cyrillic letter e
-    }
 }
