@@ -3,6 +3,7 @@ package com.neutralplasma.virtusbot.handlers.playerLeveling
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler
 import com.neutralplasma.virtusbot.settings.NewSettingsManager
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
+import com.neutralplasma.virtusbot.utils.FileUtil
 import com.neutralplasma.virtusbot.utils.GraphicUtil.dye
 import com.neutralplasma.virtusbot.utils.Resizer
 import com.neutralplasma.virtusbot.utils.GraphicUtil.makeRoundedCorner
@@ -260,14 +261,22 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
                 val progress = ((data.xp - getNeededXP(data.level-1)) / (getNeededXP(data.level) - getNeededXP(data.level-1)) * 100).roundToInt().coerceAtLeast(0).toDouble()
 
                 var url = URL("http://images.sloempire.eu/Developing/Level-Banner-01.png")
-                var background = ImageIO.read(url.openStream())
+                //var background = ImageIO.read(url.openStream()) // TODO: use FileUtil
+
+                var background = FileUtil.getImage("Level-Banner-01.png") // background
                 background = Resizer.AVERAGE.resize(background, width, height)
+
+                var levelSquare = FileUtil.getImage("level-banner-square-01.png") // level square
+                levelSquare = Resizer.AVERAGE.resize(levelSquare, width, height)
+
                 val primary = GradientPaint(
                         0f, 0f, color1, width.toFloat(), 0f, color2)
                 background = dye(background, primary)
-                url = URL("http://images.sloempire.eu/Developing/level-banner-square-01.png")
-                val levelSquare = ImageIO.read(url.openStream())
-                background = Resizer.AVERAGE.resize(background, width, height)
+
+                //url = URL("http://images.sloempire.eu/Developing/level-banner-square-01.png")
+                //val levelSquare = ImageIO.read(url.openStream()) // TODO: use FileUtil
+
+
                 url = URL(user.effectiveAvatarUrl)
                 var avatar = ImageIO.read(url.openStream())
                 avatar = Resizer.PROGRESSIVE_BILINEAR.resize(avatar!!, 400, 400)
