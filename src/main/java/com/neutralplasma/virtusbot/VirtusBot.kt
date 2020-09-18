@@ -26,7 +26,6 @@ import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler
 import com.neutralplasma.virtusbot.settings.NewSettingsManager
 import com.neutralplasma.virtusbot.storage.config.Info
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
-import com.neutralplasma.virtusbot.storage.locale.LocaleHandler
 import com.neutralplasma.virtusbot.storage.ticket.TicketStorage
 import com.neutralplasma.virtusbot.utils.OtherUtil
 import net.dv8tion.jda.api.JDABuilder
@@ -71,17 +70,15 @@ object VirtusBot {
         ticketStorage.setup()
 
 
-        // LOCALE HANDLER
-        val localeHandler = LocaleHandler(newSettingsManager, storageHandler, bot)
 
         // MUSIC
         val youtubeSearch = YoutubeSearch()
 
         // PRECREATE COMMANDS
-        val createTicketCMD = CreateTicketCMD(ticketStorage, bot, newSettingsManager, localeHandler)
-        val deleteTicketCMD = DeleteTicketCMD(ticketStorage, localeHandler)
+        val createTicketCMD = CreateTicketCMD(ticketStorage, bot, newSettingsManager)
+        val deleteTicketCMD = DeleteTicketCMD(ticketStorage)
         val eventHandler = EventHandler(newSettingsManager, createTicketCMD,
-                localeHandler, playerLeveling)
+                playerLeveling)
 
 
         // ABOUT COMMAND -- DD --
@@ -96,19 +93,19 @@ object VirtusBot {
 
         // COMMANDS
         commands.add(aboutCommand)
-        commands.add(SuggestCmd(newSettingsManager, localeHandler))
-        commands.add(TestCommand(newSettingsManager, localeHandler))
-        commands.add(HelpCommand(newSettingsManager, localeHandler, bot))
+        commands.add(SuggestCmd(newSettingsManager ))
+        commands.add(TestCommand(newSettingsManager ))
+        commands.add(HelpCommand(newSettingsManager, bot))
 
         // ticket
         commands.add(createTicketCMD)
         commands.add(deleteTicketCMD)
-        commands.add(CreateTicketChannelCmd(newSettingsManager, localeHandler))
-        commands.add(CloseTicketCMD(ticketStorage, localeHandler))
+        commands.add(CreateTicketChannelCmd(newSettingsManager))
+        commands.add(CloseTicketCMD(ticketStorage))
 
         // admin
-        commands.add(ServerDataCmd(newSettingsManager, localeHandler, playerLeveling, storageHandler, playerSettingsHandler))
-        commands.add(SetSuggestCmd(newSettingsManager, localeHandler))
+        commands.add(ServerDataCmd(newSettingsManager, playerLeveling, storageHandler, playerSettingsHandler))
+        commands.add(SetSuggestCmd(newSettingsManager))
         commands.add(SayCommand())
         commands.add(MultiplierCommand(playerLeveling))
 

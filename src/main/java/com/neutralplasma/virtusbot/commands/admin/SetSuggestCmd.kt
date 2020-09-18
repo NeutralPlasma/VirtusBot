@@ -4,13 +4,10 @@ import com.jagrosh.jdautilities.command.CommandEvent
 import com.neutralplasma.virtusbot.commands.AdminCommand
 import com.neutralplasma.virtusbot.settings.NewSettingsManager
 import com.neutralplasma.virtusbot.storage.config.Info
-import com.neutralplasma.virtusbot.storage.locale.LocaleHandler
 import net.dv8tion.jda.api.EmbedBuilder
 import java.awt.Color
 
-class SetSuggestCmd(newSettingsManager: NewSettingsManager, localeHandler: LocaleHandler) : AdminCommand() {
-    private val newSettingsManager: NewSettingsManager
-    private val localeHandler: LocaleHandler
+class SetSuggestCmd(private val newSettingsManager: NewSettingsManager) : AdminCommand() {
     override fun execute(commandEvent: CommandEvent) {
         commandEvent.message.delete().queue()
 
@@ -30,7 +27,5 @@ class SetSuggestCmd(newSettingsManager: NewSettingsManager, localeHandler: Local
     init {
         name = "setsuggest"
         help = "Sets suggestions channel"
-        this.newSettingsManager = newSettingsManager
-        this.localeHandler = localeHandler
     }
 }

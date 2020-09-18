@@ -8,17 +8,15 @@ import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler
 import com.neutralplasma.virtusbot.settings.NewSettingsManager
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
-import com.neutralplasma.virtusbot.storage.locale.LocaleHandler
 import com.neutralplasma.virtusbot.utils.FormatUtil.listOfRoles
 import com.neutralplasma.virtusbot.utils.FormatUtil.listOfTChannels
 import net.dv8tion.jda.api.EmbedBuilder
 import java.awt.Color
 
-class ServerDataCmd(settingsManager: NewSettingsManager, localeHandler: LocaleHandler,
+class ServerDataCmd(settingsManager: NewSettingsManager,
                     playerLeveling: PlayerLeveling, sql: StorageHandler, playerSettingsHandler: PlayerSettingsHandler) : AdminCommand() {
     private val sql: StorageHandler
     private val settingsManager: NewSettingsManager
-    private val localeHandler: LocaleHandler
     private val playerLeveling: PlayerLeveling
     private val playerSettingsHandler: PlayerSettingsHandler
     override fun execute(commandEvent: CommandEvent) {
@@ -68,30 +66,7 @@ class ServerDataCmd(settingsManager: NewSettingsManager, localeHandler: LocaleHa
                 } else {
                     commandEvent.reply("**setrole:** <setting> <data>")
                 }
-            } else if (args[0].equals("setlocale", ignoreCase = true)) {
-                if (args.size > 2) {
-                    val setting = args[1]
-                    val builder = StringBuilder()
-                    for (i in 2 until args.size) {
-                        builder.append(" ").append(args[i])
-                    }
-                    val data = args[2]
-                    localeHandler.updateLocale(guild, setting, builder.toString())
-                    commandEvent.reply("Succesfully updated: $setting data to: $builder")
-                } else {
-                    commandEvent.reply("**setrole:** <setting> <data>")
-                }
-            } else if (args[0].equals("getlocales", ignoreCase = true)) {
-                val eb = EmbedBuilder()
-                eb.setColor(Color.magenta.brighter())
-                eb.setTitle("All locales")
-                val builder = StringBuilder()
-                for (string in localeHandler.defaultLocales.keys) {
-                    builder.append(string).append("\n")
-                }
-                eb.addField("Locales", builder.toString(), false)
-                commandEvent.reply(eb.build())
-            } else if (args[0].equals("test", ignoreCase = true)) {
+            }  else if (args[0].equals("test", ignoreCase = true)) {
                 try {
                     var data = playerLeveling.getUser(commandEvent.author, commandEvent.guild)
                     if(data != null) {
@@ -128,7 +103,6 @@ class ServerDataCmd(settingsManager: NewSettingsManager, localeHandler: LocaleHa
         help = "Simple command for checking server stuff"
         arguments = "<SUBCOMMAND>"
         this.settingsManager = settingsManager
-        this.localeHandler = localeHandler
         this.playerLeveling = playerLeveling
         this.sql = sql
         this.playerSettingsHandler = playerSettingsHandler

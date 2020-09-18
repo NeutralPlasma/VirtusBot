@@ -3,13 +3,10 @@ package com.neutralplasma.virtusbot.commands.admin
 import com.jagrosh.jdautilities.command.CommandEvent
 import com.neutralplasma.virtusbot.commands.AdminCommand
 import com.neutralplasma.virtusbot.settings.NewSettingsManager
-import com.neutralplasma.virtusbot.storage.locale.LocaleHandler
 import net.dv8tion.jda.api.EmbedBuilder
 import java.awt.Color
 
-class CreateTicketChannelCmd(settingsManager: NewSettingsManager, localeHandler: LocaleHandler) : AdminCommand() {
-    private val settingsManager: NewSettingsManager
-    private val localeHandler: LocaleHandler
+class CreateTicketChannelCmd(private val settingsManager: NewSettingsManager) : AdminCommand() {
     override fun execute(commandEvent: CommandEvent) {
         commandEvent.message.delete().queue()
         val eb = EmbedBuilder()
@@ -26,7 +23,5 @@ class CreateTicketChannelCmd(settingsManager: NewSettingsManager, localeHandler:
     init {
         name = "createticketchannel"
         help = "Creates ticket channel"
-        this.settingsManager = settingsManager
-        this.localeHandler = localeHandler
     }
 }

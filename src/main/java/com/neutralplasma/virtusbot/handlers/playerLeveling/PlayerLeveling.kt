@@ -34,7 +34,7 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
     var users = HashMap<String, PlayerData>()
 
 
-    var toUpdate = HashMap<String, UpdateData>() // which users to update on update event.
+    var toUpdate = HashMap<String, PlayerData>() // which users to update on update event.
 
     var updatingTask = Runnable {
         try {
@@ -75,8 +75,8 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
 
                 val statement1 = "DELETE FROM $tableName WHERE userID = ? AND guildID = ?"
                 connection.prepareStatement(statement1).use { preparedStatement ->
-                    preparedStatement.setLong(1, udata.data.userID)
-                    preparedStatement.setLong(2, udata.data.serverID)
+                    preparedStatement.setLong(1, udata.userID)
+                    preparedStatement.setLong(2, udata.serverID)
                     preparedStatement.execute()
                 }
 
@@ -87,10 +87,10 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
                         "xp," +
                         "level) VALUES (?, ?, ?, ?)"
                 connection.prepareStatement(statement2).use { preparedStatement ->
-                    preparedStatement.setLong(1, udata.data.userID)
-                    preparedStatement.setLong(2, udata.data.serverID)
-                    preparedStatement.setLong(3, udata.data.xp)
-                    preparedStatement.setInt(4, udata.data.level)
+                    preparedStatement.setLong(1, udata.userID)
+                    preparedStatement.setLong(2, udata.serverID)
+                    preparedStatement.setLong(3, udata.xp)
+                    preparedStatement.setInt(4, udata.level)
                     preparedStatement.execute()
                 }
                 x++
@@ -148,7 +148,7 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
     fun updateUser(data: PlayerData) {
         val info = data.userID.toString() + ":" + data.serverID
         users[info] = data
-        toUpdate[info] = UpdateData(data, true)
+        toUpdate[info] = data
     }
 
 
@@ -160,7 +160,7 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
     fun addUser(playerData: PlayerData) {
         val info = playerData.userID.toString() + ":" + playerData.serverID
         users[info] = playerData
-        toUpdate[info] = UpdateData(playerData, false)
+        toUpdate[info] = playerData
     }
 
     /**

@@ -6,7 +6,6 @@ import com.jagrosh.jdautilities.menu.Paginator
 import com.neutralplasma.virtusbot.Bot
 import com.neutralplasma.virtusbot.VirtusBot.commands
 import com.neutralplasma.virtusbot.settings.NewSettingsManager
-import com.neutralplasma.virtusbot.storage.locale.LocaleHandler
 import com.neutralplasma.virtusbot.utils.TextUtil.filter
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.exceptions.PermissionException
@@ -14,9 +13,7 @@ import java.awt.Color
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class HelpCommand(newSettingsManager: NewSettingsManager, localeHandler: LocaleHandler, bot: Bot) : Command() {
-    private val newSettingsManager: NewSettingsManager
-    private val localeHandler: LocaleHandler
+class HelpCommand(private val newSettingsManager: NewSettingsManager, bot: Bot) : Command() {
     private val builder: Paginator.Builder
     override fun execute(event: CommandEvent) {
         val commands = commands
@@ -52,8 +49,6 @@ class HelpCommand(newSettingsManager: NewSettingsManager, localeHandler: LocaleH
         name = "help"
         help = "Main help command."
         guildOnly = true
-        this.newSettingsManager = newSettingsManager
-        this.localeHandler = localeHandler
         builder = Paginator.Builder()
                 .setColumns(1)
                 .setFinalAction { m: Message ->

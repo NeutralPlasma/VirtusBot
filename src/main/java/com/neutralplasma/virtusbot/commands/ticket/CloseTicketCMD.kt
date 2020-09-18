@@ -2,18 +2,14 @@ package com.neutralplasma.virtusbot.commands.ticket
 
 import com.jagrosh.jdautilities.command.CommandEvent
 import com.neutralplasma.virtusbot.commands.TicketCommand
-import com.neutralplasma.virtusbot.storage.locale.LocaleHandler
 import com.neutralplasma.virtusbot.storage.ticket.TicketInfo
 import com.neutralplasma.virtusbot.storage.ticket.TicketStorage
 import com.neutralplasma.virtusbot.utils.AbstractReactionUtil
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.TextChannel
 import net.dv8tion.jda.api.entities.User
 
-class CloseTicketCMD(ticketStorage: TicketStorage, localeHandler: LocaleHandler) : TicketCommand() {
-    private val ticketStorage: TicketStorage
-    private val localeHandler: LocaleHandler
+class CloseTicketCMD(private val ticketStorage: TicketStorage) : TicketCommand() {
     override fun execute(commandEvent: CommandEvent) {
         val ticketid = ticketStorage.getTicketChannel(commandEvent.channel.id)
         if (ticketid != null) {
@@ -49,7 +45,5 @@ class CloseTicketCMD(ticketStorage: TicketStorage, localeHandler: LocaleHandler)
         aliases = arrayOf("closeticket")
         arguments = "<Name|NONE>"
         guildOnly = true
-        this.ticketStorage = ticketStorage
-        this.localeHandler = localeHandler
     }
 }

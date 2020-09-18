@@ -4,7 +4,6 @@ import com.jagrosh.jdautilities.command.CommandEvent
 import com.neutralplasma.virtusbot.Bot
 import com.neutralplasma.virtusbot.commands.TicketCommand
 import com.neutralplasma.virtusbot.settings.NewSettingsManager
-import com.neutralplasma.virtusbot.storage.locale.LocaleHandler
 import com.neutralplasma.virtusbot.storage.ticket.TicketStorage
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.Permission
@@ -13,11 +12,7 @@ import net.dv8tion.jda.api.requests.restaction.ChannelAction
 import java.awt.Color
 import java.text.MessageFormat
 
-class CreateTicketCMD(ticketStorage: TicketStorage, bot: Bot, newSettingsManager: NewSettingsManager, localeHandler: LocaleHandler) : TicketCommand() {
-    private val ticketStorage: TicketStorage
-    private val bot: Bot
-    private val newSettingsManager: NewSettingsManager
-    private val localeHandler: LocaleHandler
+class CreateTicketCMD(private val ticketStorage: TicketStorage,private val bot: Bot, private val newSettingsManager: NewSettingsManager) : TicketCommand() {
     override fun execute(commandEvent: CommandEvent) {
         if (ticketStorage.getTicketChannel(commandEvent.author.id) == null) {
             commandEvent.reply("Creating the ticket...")
@@ -137,9 +132,5 @@ class CreateTicketCMD(ticketStorage: TicketStorage, bot: Bot, newSettingsManager
         aliases = arrayOf("new", "support")
         arguments = "<Name|NONE>"
         guildOnly = true
-        this.ticketStorage = ticketStorage
-        this.bot = bot
-        this.newSettingsManager = newSettingsManager
-        this.localeHandler = localeHandler
     }
 }
