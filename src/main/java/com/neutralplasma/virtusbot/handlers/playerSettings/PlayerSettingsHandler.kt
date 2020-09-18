@@ -10,6 +10,8 @@ import java.util.*
 class PlayerSettingsHandler(private val sql: StorageHandler) {
     private val gson = Gson()
     private val pSettings = HashMap<String, PlayerSettings>()
+
+    private val toUpdate = HashMap<String, PlayerSettings>()
     fun pSettingsUpdater() {
         val t = Timer()
         t.scheduleAtFixedRate(object : TimerTask() {
@@ -28,12 +30,21 @@ class PlayerSettingsHandler(private val sql: StorageHandler) {
 
     @Throws(SQLException::class)
     fun syncSettings() {
-        val data = HashMap(pSettings)
+        val data = HashMap(toUpdate)
+        toUpdate.clear()
         sql.connection.use { connection ->
-            val statement = "DELETE FROM PlayerSettings;"
-            connection!!.prepareStatement(statement).use { preparedStatement -> preparedStatement.execute() }
+            if(connection == null) throw SQLException("Connection can't be null.")
+
             for (userinfo in data.keys) {
                 val udata = data[userinfo]
+
+                val statement1 = "DELETE FROM PlayerSettings WHERE userID = ?"
+                connection.prepareStatement(statement1).use { preparedStatement ->
+                    preparedStatement.setString(1, userinfo)
+                    preparedStatement.execute()
+                }
+
+
                 val settings = gson.toJson(udata)
                 val statement2 = "INSERT INTO PlayerSettings (" +
                         "userID," +
@@ -81,6 +92,7 @@ class PlayerSettingsHandler(private val sql: StorageHandler) {
      */
     fun updateUser(user: User, playerSettings: PlayerSettings) {
         pSettings[user.id] = playerSettings
+        toUpdate[user.id] = playerSettings
     }
 
     init {
