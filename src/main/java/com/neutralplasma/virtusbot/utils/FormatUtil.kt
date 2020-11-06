@@ -1,5 +1,6 @@
 package com.neutralplasma.virtusbot.utils
 
+import net.dv8tion.jda.api.entities.Category
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.entities.TextChannel
 import net.dv8tion.jda.api.entities.VoiceChannel
@@ -35,6 +36,18 @@ object FormatUtil {
 
     @JvmStatic
     fun listOfTChannels(list: List<TextChannel>, query: String): String {
+        var out = " Multiple text channels found matching \"$query\":"
+        var i = 0
+        while (i < 6 && i < list.size) {
+            out += "- ${list[i].name} (<#${list[i].id}>)"
+            i++
+        }
+        if (list.size > 6) out += "**And ${list.size - 6} more...**"
+        return out
+    }
+
+    @JvmStatic
+    fun listOfTCategories(list: List<Category>, query: String): String {
         var out = " Multiple text channels found matching \"$query\":"
         var i = 0
         while (i < 6 && i < list.size) {

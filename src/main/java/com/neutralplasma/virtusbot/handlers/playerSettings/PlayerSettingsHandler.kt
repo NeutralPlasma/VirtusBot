@@ -6,6 +6,7 @@ import com.neutralplasma.virtusbot.utils.TextUtil.sendMessage
 import net.dv8tion.jda.api.entities.User
 import java.sql.SQLException
 import java.util.*
+import kotlin.jvm.Throws
 
 class PlayerSettingsHandler(private val sql: StorageHandler) {
     private val gson = Gson()

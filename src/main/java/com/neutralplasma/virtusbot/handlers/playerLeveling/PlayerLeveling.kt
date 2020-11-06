@@ -2,6 +2,7 @@ package com.neutralplasma.virtusbot.handlers.playerLeveling
 
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler
 import com.neutralplasma.virtusbot.settings.NewSettingsManager
+import com.neutralplasma.virtusbot.settings.SettingsList
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
 import com.neutralplasma.virtusbot.utils.FileUtil
 import com.neutralplasma.virtusbot.utils.GraphicUtil.dye
@@ -23,6 +24,7 @@ import java.net.URL
 import java.sql.SQLException
 import java.util.*
 import javax.imageio.ImageIO
+import kotlin.jvm.Throws
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -218,7 +220,7 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
         }
         if(leveledUp && guild != null){
             updateUser(data)
-            val channel = settings.getTextChannel(guild, "LEVELUP_MESSAGES")
+            val channel = settings.getTextChannel(guild, SettingsList.LEVEL_UP_CHANNEL)
             if (channel != null) {
                 if (!blackListed.contains(channel.id)) {
                     sendLevelUpMessage(user, data, channel)

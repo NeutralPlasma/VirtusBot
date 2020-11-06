@@ -3,6 +3,7 @@ package com.neutralplasma.virtusbot.commands.admin
 import com.jagrosh.jdautilities.command.CommandEvent
 import com.neutralplasma.virtusbot.commands.AdminCommand
 import com.neutralplasma.virtusbot.utils.AbstractChatUtil
+import com.neutralplasma.virtusbot.utils.HexUtil
 import net.dv8tion.jda.api.EmbedBuilder
 import java.awt.Color
 import java.util.*
@@ -10,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 class SayCommand : AdminCommand() {
     private val savedMessages = HashMap<String, EmbedBuilder>()
-    override fun execute(commandEvent: CommandEvent) {
+    override fun executeCommand(commandEvent: CommandEvent) {
         val args = commandEvent.args
         val cargs = args.split(" ".toRegex()).toTypedArray()
         val member = commandEvent.member
@@ -50,16 +51,17 @@ class SayCommand : AdminCommand() {
 
                 }
             } else if (cargs[0].equals("color", ignoreCase = true)) {
-                commandEvent.reply("Please send color in next format: RRR:GGG:BBB (255:255:255):")
+                commandEvent.reply("Please send color in next format: #RRGGBB")
                 val abstractChatUtil = AbstractChatUtil(commandEvent.author, { chatInfo: AbstractChatUtil.ChatConfirmEvent ->
-                    val color = chatInfo.message.split(":".toRegex()).toTypedArray()
-                    if (color.size > 2) {
-                        val color1 = Color(color[0].toInt(), color[1].toInt(), color[2].toInt())
-                        finalMessage.setColor(color1)
+                    //val color = chatInfo.message.split(":".toRegex()).toTypedArray()
+                    val color = HexUtil.translateHex(chatInfo.message);
+                    if(color != null){
+                        finalMessage.setColor(color)
                         savedMessages.put(member.id, finalMessage)
-                    } else {
-                        commandEvent.reply("Please follow the format: RRR:GGG:BBB")
+                    }else{
+                        commandEvent.reply("Invalid color or color format.")
                     }
+
                 }, commandEvent.jda)
 
                 abstractChatUtil.onClose =  { commandEvent.reply("Finished.") }
@@ -68,7 +70,7 @@ class SayCommand : AdminCommand() {
                 savedMessages.remove(member.id)
                 commandEvent.reply("DONE")
             } else if (cargs[0].equals("send", ignoreCase = true)) {
-                commandEvent.reply(finalMessage.build())
+                commandEvent.channel.sendMessage(finalMessage.build()).queue();
             } else {
                 commandEvent.reply(info.build())
             }

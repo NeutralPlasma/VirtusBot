@@ -2,6 +2,7 @@ package com.neutralplasma.virtusbot.storage.ticket
 
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
 import java.sql.SQLException
+import kotlin.jvm.Throws
 
 class TicketStorage(private val sql: StorageHandler) {
     private val tableName = "TicketData"

@@ -7,6 +7,7 @@ import com.zaxxer.hikari.HikariDataSource
 import java.io.File
 import java.sql.Connection
 import java.sql.SQLException
+import kotlin.jvm.Throws
 
 class SQL : Storage() {
     private var hikari: HikariDataSource? = null

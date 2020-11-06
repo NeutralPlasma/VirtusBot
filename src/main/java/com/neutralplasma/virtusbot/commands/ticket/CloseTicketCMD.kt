@@ -15,23 +15,21 @@ class CloseTicketCMD(private val ticketStorage: TicketStorage) : TicketCommand()
         if (ticketid != null) {
             sendMessage(commandEvent.textChannel, commandEvent.author, ticketid)
         } else {
-            commandEvent.reply("You don't have an ticket.")
+            commandEvent.reply("Nisi v ticket kanalu.")
         }
     }
 
     fun sendMessage(channel: TextChannel, user: User?, info: TicketInfo) {
         val eb = EmbedBuilder()
-        eb.addField("CLOSE TICKET?", "React with ✔ to close the ticket.", false)
+        eb.addField("Potrditev", "Reaktraj na sporoćilo z ✔ da zapreš ta ticket.", false)
 
         val message = channel.sendMessage(eb.build()).complete()
         message.addReaction("✔").queue()
 
-        val reactionUtil = AbstractReactionUtil(user!!, {}, message.jda, "✔", message.id)
-
-        reactionUtil.onClose = {
+        val reactionUtil = AbstractReactionUtil(user!!, {
             ticketStorage.deleteTicket(info.userID, info.channelID)
             deleteChannel(channel)
-        }
+        }, message.jda, "✔", message.id)
 
     }
 
@@ -41,7 +39,7 @@ class CloseTicketCMD(private val ticketStorage: TicketStorage) : TicketCommand()
 
     init {
         name = "close"
-        help = "Delete the ticket"
+        help = "Zapri ticket."
         aliases = arrayOf("closeticket")
         arguments = "<Name|NONE>"
         guildOnly = true

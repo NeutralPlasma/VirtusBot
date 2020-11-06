@@ -14,6 +14,9 @@ abstract class TicketCommand : Command() {
 
     init {
         guildOnly = true
-        this.category = Category("Ticket", Predicate { event: CommandEvent -> !blackList.isBlackListed(event.author.id) })
+        this.category = Category("Ticket", Predicate {
+            event: CommandEvent ->
+            !blackList.isBlackListed(event.author.id)
+        })
     }
 }

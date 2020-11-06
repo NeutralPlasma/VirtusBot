@@ -3,6 +3,7 @@ package com.neutralplasma.virtusbot.storage.dataStorage
 import com.neutralplasma.virtusbot.storage.config.Info
 import java.sql.Connection
 import java.sql.SQLException
+import kotlin.jvm.Throws
 
 class StorageHandler {
     var storage: Storage? = null

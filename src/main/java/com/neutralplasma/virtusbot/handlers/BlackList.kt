@@ -4,6 +4,7 @@ import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
 import com.neutralplasma.virtusbot.utils.TextUtil.sendMessage
 import java.sql.SQLException
 import java.util.*
+import kotlin.jvm.Throws
 
 class BlackList(private val storageHandler: StorageHandler) {
     private val TableName = "BlackList"

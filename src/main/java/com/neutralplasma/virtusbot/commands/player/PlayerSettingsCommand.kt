@@ -4,6 +4,7 @@ import com.jagrosh.jdautilities.command.CommandEvent
 import com.neutralplasma.virtusbot.commands.PlayerCommand
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettings
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler
+import com.neutralplasma.virtusbot.utils.HexUtil
 import net.dv8tion.jda.api.EmbedBuilder
 import java.awt.Color
 import java.net.URL
@@ -30,28 +31,28 @@ class PlayerSettingsCommand(playerSettingsHandler: PlayerSettingsHandler) : Play
                 commandEvent.reply("URL: " + playerSettings.getAvatarBackgroundImage())
             } else if (args[0].equals("setColor1", ignoreCase = true)) {
                 if (args.size > 1) {
-                    val color = args[1].split(":".toRegex()).toTypedArray()
-                    if (color.size > 2) {
-                        playerSettings.setColor1(Color(color[0].toInt(), color[1].toInt(), color[2].toInt()))
+                    val color = HexUtil.translateHex(args[1])
+                    if(color != null){
+                        playerSettings.setColor1(color)
                         commandEvent.reply("Successfully set the color.")
                         playerSettingsHandler.updateUser(commandEvent.author, playerSettings)
                         return
-                    } else {
-                        commandEvent.reply("Follow this format: RRR:GGG:BBB")
+                    }else{
+                        commandEvent.reply("Follow this format: #RRGGBB")
                         return
                     }
                 }
                 commandEvent.reply("Provide color...")
             } else if (args[0].equals("setColor2", ignoreCase = true)) {
                 if (args.size > 1) {
-                    val color = args[1].split(":".toRegex()).toTypedArray()
-                    if (color.size > 2) {
-                        playerSettings.setColor2(Color(color[0].toInt(), color[1].toInt(), color[2].toInt()))
+                    val color = HexUtil.translateHex(args[1])
+                    if(color != null){
+                        playerSettings.setColor2(color)
                         commandEvent.reply("Successfully set the color.")
                         playerSettingsHandler.updateUser(commandEvent.author, playerSettings)
                         return
-                    } else {
-                        commandEvent.reply("Follow this format: RRR:GGG:BBB")
+                    }else{
+                        commandEvent.reply("Follow this format: #RRGGBB")
                         return
                     }
                 }
@@ -92,8 +93,8 @@ class PlayerSettingsCommand(playerSettingsHandler: PlayerSettingsHandler) : Play
      
      **toggleDark** - Enables/Disables dark theme. 
      **avatarBackGround** - Returns current avatar background url. 
-     **setColor1** <RRR:GGG:BBB> - Sets the first color. 
-     **setColor2** <RRR:GGG:BBB> - Sets the second color. 
+     **setColor1** #RRGGBB - Sets the first color. 
+     **setColor2** #RRGGBB - Sets the second color. 
      **resetColor1**  - Resets the second color. 
      **resetColor2** - Resets the second color. 
      **setBackGround** <URL> - Sets new avatar background image.

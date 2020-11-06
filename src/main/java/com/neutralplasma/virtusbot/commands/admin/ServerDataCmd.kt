@@ -7,8 +7,10 @@ import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerData
 import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler
 import com.neutralplasma.virtusbot.settings.NewSettingsManager
+import com.neutralplasma.virtusbot.settings.SettingsList
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
 import com.neutralplasma.virtusbot.utils.FormatUtil.listOfRoles
+import com.neutralplasma.virtusbot.utils.FormatUtil.listOfTCategories
 import com.neutralplasma.virtusbot.utils.FormatUtil.listOfTChannels
 import net.dv8tion.jda.api.EmbedBuilder
 import java.awt.Color
@@ -19,7 +21,7 @@ class ServerDataCmd(settingsManager: NewSettingsManager,
     private val settingsManager: NewSettingsManager
     private val playerLeveling: PlayerLeveling
     private val playerSettingsHandler: PlayerSettingsHandler
-    override fun execute(commandEvent: CommandEvent) {
+    override fun executeCommand(commandEvent: CommandEvent) {
         val arg = commandEvent.args
         val guild = commandEvent.guild
         val args = arg.split(" ".toRegex()).toTypedArray()
@@ -27,7 +29,7 @@ class ServerDataCmd(settingsManager: NewSettingsManager,
         if (args.size >= 1) {
             if (args[0].equals("setrole", ignoreCase = true)) {
                 if (args.size > 2) {
-                    val setting = args[1]
+                    val setting = SettingsList.valueOf(args[1])
                     val roles = FinderUtil.findRoles(args[2], guild)
                     if (roles.isEmpty()) {
                         commandEvent.reply("No role found!")
@@ -42,7 +44,7 @@ class ServerDataCmd(settingsManager: NewSettingsManager,
                 }
             } else if (args[0].equals("setchannel", ignoreCase = true)) {
                 if (args.size > 2) {
-                    val setting = args[1]
+                    val setting = SettingsList.valueOf(args[1])
                     val channels = FinderUtil.findTextChannels(args[2], guild)
                     if (channels.isEmpty()) {
                         commandEvent.reply("No channel found!")
@@ -55,12 +57,25 @@ class ServerDataCmd(settingsManager: NewSettingsManager,
                 } else {
                     commandEvent.reply("**set:** <setting> <data>")
                 }
+            } else if (args[0].equals("setcategory", ignoreCase = true)) {
+                if (args.size > 2) {
+                    val setting = SettingsList.valueOf(args[1])
+                    val categories = FinderUtil.findCategories(args[2], guild)
+                    if (categories.isEmpty()) {
+                        commandEvent.reply("No Categories found!")
+                    } else if (categories.size > 1) {
+                        commandEvent.reply(commandEvent.client.warning + listOfTCategories(categories, arg))
+                    } else {
+                        commandEvent.reply("Set: " + categories[0].name)
+                        settingsManager.addStringData(guild, setting, categories[0].id)
+                    }
+                }
             } else if (args[0].equals("getdata", ignoreCase = true)) {
-                val setting = args[1]
+                val setting = SettingsList.valueOf(args[1])
                 commandEvent.reply("Data: `" + settingsManager.getData(guild, setting) + "`")
             } else if (args[0].equals("setstringdata", ignoreCase = true)) {
                 if (args.size > 2) {
-                    val setting = args[1]
+                    val setting = SettingsList.valueOf(args[1])
                     val data = args[2]
                     settingsManager.addStringData(guild, setting, data)
                 } else {
@@ -92,6 +107,7 @@ class ServerDataCmd(settingsManager: NewSettingsManager,
  **adminadd** <setting> <data> - adds data to SQL 
  **setlocale** <locale> <locale_text> - adds localedata to locales 
  **getlocales** - gets all possible locales to be set 
+ **setcategory** <setting> <category> - Set the category
  """, false)
             eb.setColor(Color.ORANGE)
             commandEvent.reply(eb.build())

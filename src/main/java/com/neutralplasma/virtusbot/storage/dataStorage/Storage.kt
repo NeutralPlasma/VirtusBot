@@ -2,6 +2,7 @@ package com.neutralplasma.virtusbot.storage.dataStorage
 
 import java.sql.Connection
 import java.sql.SQLException
+import kotlin.jvm.Throws
 
 abstract class Storage {
     open fun openConnection() {}

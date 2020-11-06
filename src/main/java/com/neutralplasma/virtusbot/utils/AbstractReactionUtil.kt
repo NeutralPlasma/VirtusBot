@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter
 import java.util.*
 
 class AbstractReactionUtil(user: User, private val function: (ChatConfirmEvent) -> Unit, jda: JDA, private val emoji: String, private val message: String) : ListenerAdapter() {
-    var onClose: () -> Unit = {}
 
     private var listener: ListenerAdapter? = null
     private fun initializeListeners(jda: JDA) {
@@ -24,7 +23,6 @@ class AbstractReactionUtil(user: User, private val function: (ChatConfirmEvent) 
                 val chatConfirmEvent = ChatConfirmEvent(user, emote.emoji)
                 function(chatConfirmEvent)
 
-                onClose()
 
                 jda.removeEventListener(listener)
             }

@@ -3,6 +3,7 @@ package com.neutralplasma.virtusbot.commands.general
 import com.jagrosh.jdautilities.command.Command
 import com.jagrosh.jdautilities.command.CommandEvent
 import com.neutralplasma.virtusbot.settings.NewSettingsManager
+import com.neutralplasma.virtusbot.settings.SettingsList
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.TextChannel
@@ -17,7 +18,7 @@ class SuggestCmd(private val newSettingsManager: NewSettingsManager) : Command()
         val arg = event.args
         val guild = event.guild
         event.message.delete()
-        val suggestChannel = newSettingsManager.getTextChannel(guild, "SUGGEST_CHANNEL")
+        val suggestChannel = newSettingsManager.getTextChannel(guild, SettingsList.SUGGEST_CHANNEL)
         if (suggestChannel != null) {
             createSuggestion(suggestChannel, event.author, arg)
         } else {

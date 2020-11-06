@@ -18,7 +18,6 @@ import com.neutralplasma.virtusbot.commands.player.LevelCommand
 import com.neutralplasma.virtusbot.commands.player.PlayerSettingsCommand
 import com.neutralplasma.virtusbot.commands.ticket.CloseTicketCMD
 import com.neutralplasma.virtusbot.commands.ticket.CreateTicketCMD
-import com.neutralplasma.virtusbot.commands.ticket.DeleteTicketCMD
 import com.neutralplasma.virtusbot.event.EventHandler
 import com.neutralplasma.virtusbot.handlers.BlackList
 import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling
@@ -76,7 +75,6 @@ object VirtusBot {
 
         // PRECREATE COMMANDS
         val createTicketCMD = CreateTicketCMD(ticketStorage, bot, newSettingsManager)
-        val deleteTicketCMD = DeleteTicketCMD(ticketStorage)
         val eventHandler = EventHandler(newSettingsManager, createTicketCMD,
                 playerLeveling)
 
@@ -99,7 +97,6 @@ object VirtusBot {
 
         // ticket
         commands.add(createTicketCMD)
-        commands.add(deleteTicketCMD)
         commands.add(CreateTicketChannelCmd(newSettingsManager))
         commands.add(CloseTicketCMD(ticketStorage))
 
@@ -108,6 +105,7 @@ object VirtusBot {
         commands.add(SetSuggestCmd(newSettingsManager))
         commands.add(SayCommand())
         commands.add(MultiplierCommand(playerLeveling))
+        commands.add(NewAdminCommand())
 
         // music
         commands.add(PlayCommand(audioManager, youtubeSearch))
@@ -142,7 +140,6 @@ object VirtusBot {
         //cb.useHelpBuilder(false);
         cb.setStatus(OnlineStatus.ONLINE)
         val client = cb.build()
-
 
         // BUILD THE BOT
         try {

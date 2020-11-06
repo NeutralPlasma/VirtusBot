@@ -9,7 +9,7 @@ import com.neutralplasma.virtusbot.utils.TextUtil.formatTiming
 
 class MultiplierCommand(playerLeveling: PlayerLeveling) : AdminCommand() {
     private val playerLeveling: PlayerLeveling
-    override fun execute(event: CommandEvent) {
+    override fun executeCommand(event: CommandEvent) {
         val args = event.args.split(" ".toRegex()).toTypedArray()
         if (args.size > 0) {
             if (args[0].equals("set", ignoreCase = true)) {

@@ -1,9 +1,11 @@
 package com.neutralplasma.virtusbot.commands.ticket
 
 import com.jagrosh.jdautilities.command.CommandEvent
+import com.jagrosh.jdautilities.commons.utils.FinderUtil
 import com.neutralplasma.virtusbot.Bot
 import com.neutralplasma.virtusbot.commands.TicketCommand
 import com.neutralplasma.virtusbot.settings.NewSettingsManager
+import com.neutralplasma.virtusbot.settings.SettingsList
 import com.neutralplasma.virtusbot.storage.ticket.TicketStorage
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.Permission
@@ -11,6 +13,7 @@ import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.requests.restaction.ChannelAction
 import java.awt.Color
 import java.text.MessageFormat
+import java.util.concurrent.TimeUnit
 
 class CreateTicketCMD(private val ticketStorage: TicketStorage,private val bot: Bot, private val newSettingsManager: NewSettingsManager) : TicketCommand() {
     override fun execute(commandEvent: CommandEvent) {
@@ -18,15 +21,17 @@ class CreateTicketCMD(private val ticketStorage: TicketStorage,private val bot: 
             commandEvent.reply("Creating the ticket...")
             createTicket(commandEvent.member, commandEvent.guild)
         } else {
-            commandEvent.reply("You already have an open ticket!")
+            commandEvent.reply("Trenutno že imaš odprti ticket.")
         }
     }
 
     fun createTicket(member: Member, guild: Guild) {
         if (ticketStorage.getTicketID(member.user.id) == null) {
-            val newChannel = createChannel(member.user, guild)
+            val category = newSettingsManager.getCategory(guild, SettingsList.OPEN_TICKET_CATEGORY)
+            val newChannel = createChannel(member.user, guild, category)
+
             val roles = guild.getRolesByName("@everyone", true)
-            val role = newSettingsManager.getRole(guild, "supportRole")
+            val role = newSettingsManager.getRole(guild, SettingsList.SUPPORT_ROLE)
             for (r in roles) {
                 try {
                     updatePerms(r, newChannel, false)
@@ -37,9 +42,12 @@ class CreateTicketCMD(private val ticketStorage: TicketStorage,private val bot: 
             if (role != null) {
                 updatePerms(role, newChannel, true)
                 sendTicketMessage(newChannel, member, role)
+                newChannel.sendMessage(role.asMention).queue { m: Message -> m.delete().queueAfter(5, TimeUnit.SECONDS) }
             } else {
                 sendTicketMessage(newChannel, member, null)
             }
+
+            newChannel.sendMessage(member.asMention).queue { m: Message -> m.delete().queueAfter(5, TimeUnit.SECONDS) }
         }
     }
 
@@ -108,17 +116,17 @@ class CreateTicketCMD(private val ticketStorage: TicketStorage,private val bot: 
     fun sendTicketMessage(channel: TextChannel, member: Member, supportRole: Role?) {
         val eb = EmbedBuilder()
         if (supportRole != null) {
-            eb.addField("Ticket:", "Hello how can we help you?" + member.asMention + supportRole.asMention, false)
+            eb.addField("Ticket:", "Pozdravljen kako ti lahko pomagamo? Prosim navedi čim več informacij da ti lahko čim hiteje pomagamo!" + member.asMention + supportRole.asMention, false)
         } else {
-            eb.addField("Ticket:", "Hello how can we help you?" + member.asMention
+            eb.addField("Ticket:", "Pozdravljen kako ti lahko pomagamo? Prosim navedi čim več informacij da ti lahko čim hiteje pomagamo!" + member.asMention
                     , false)
         }
         eb.setColor(Color.RED)
         channel.sendMessage(eb.build()).queue()
     }
 
-    fun createChannel(user: User, guild: Guild): TextChannel {
-        val newchannel: ChannelAction<*> = guild.createTextChannel(user.id).setName(user.name)
+    fun createChannel(user: User, guild: Guild, category : net.dv8tion.jda.api.entities.Category?): TextChannel {
+        val newchannel: ChannelAction<*> = guild.createTextChannel(user.id, category).setName(user.name)
         val channel = newchannel.complete() as TextChannel
         val id = channel.id
         val userid = user.id

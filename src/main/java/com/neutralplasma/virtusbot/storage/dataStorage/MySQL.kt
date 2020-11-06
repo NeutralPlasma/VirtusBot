@@ -4,6 +4,7 @@ import com.neutralplasma.virtusbot.storage.config.Info
 import com.zaxxer.hikari.HikariDataSource
 import java.sql.Connection
 import java.sql.SQLException
+import kotlin.jvm.Throws
 
 class MySQL : Storage() {
     private var hikari: HikariDataSource? = null
