@@ -94,6 +94,11 @@ class ServerDataCmd(settingsManager: NewSettingsManager,
                 } catch (error: Exception) {
                     error.printStackTrace()
                 }
+            }else if (args[0].equals("testlevel", ignoreCase = true)){
+                val playerData = playerLeveling.getUser(commandEvent.author, commandEvent.guild)
+                if(playerData != null){
+                    playerLeveling.sendLevelUpMessage(commandEvent.author, playerData, commandEvent.textChannel)
+                }
             }
         } else {
             val eb = EmbedBuilder()

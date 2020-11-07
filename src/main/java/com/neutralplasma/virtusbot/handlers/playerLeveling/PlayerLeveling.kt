@@ -6,6 +6,7 @@ import com.neutralplasma.virtusbot.settings.SettingsList
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
 import com.neutralplasma.virtusbot.utils.FileUtil
 import com.neutralplasma.virtusbot.utils.GraphicUtil.dye
+import com.neutralplasma.virtusbot.utils.GraphicUtil.dyeSolid
 import com.neutralplasma.virtusbot.utils.Resizer
 import com.neutralplasma.virtusbot.utils.GraphicUtil.makeRoundedCorner
 import com.neutralplasma.virtusbot.utils.TextUtil
@@ -370,19 +371,33 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
                 val font = "Berlin Sans FB Demi"
                 val height = 521
                 val width = 1250
-                var darkTheme = true
-                val primary = GradientPaint(
-                        0f, 0f, Color.ORANGE, width.toFloat(), 0f, Color(0xFF6600))
-                val secondary = GradientPaint(
-                        0f, 0f, Color(0xFF4800), width.toFloat(), 0f, Color(0xFF6600))
+
+
+                val playerSettings = playerSettingsHandler.getSettings(user)
+
+                var color1 = Color.orange
+                var color2 = Color.red
+                var darkTheme = playerSettings?.isDarkTheme()
+                if(darkTheme == null) darkTheme = true
+
+                if (playerSettings != null) {
+                    if (playerSettings.getColor1() != null) {
+                        color1 = playerSettings.getColor1()
+                    }
+                    if (playerSettings.getColor2() != null) {
+                        color2 = playerSettings.getColor2()
+                    }
+                }
+
+
                 var url = URL("http://images.sloempire.eu/Developing/LevelUp-Left-01.png")
                 var left = ImageIO.read(url.openStream())
                 left = Resizer.AVERAGE.resize(left, width, height)
-                left = dye(left, primary)
+                left = dyeSolid(left, color1)
                 url = URL("http://images.sloempire.eu/Developing/LevelUp-Right-01.png")
                 var right = ImageIO.read(url.openStream())
                 right = Resizer.AVERAGE.resize(right, width, height)
-                right = dye(right, secondary)
+                right = dyeSolid(right, color2)
                 url = URL("http://images.sloempire.eu/Developing/levelup-overlay-01.png")
                 var overlay = ImageIO.read(url.openStream())
                 overlay = Resizer.AVERAGE.resize(overlay, width, height)

@@ -35,6 +35,7 @@ import java.awt.Color
 import java.util.*
 import java.util.function.Consumer
 import javax.security.auth.login.LoginException
+import kotlin.collections.ArrayList
 
 object VirtusBot {
     val RECOMMENDED_PERMS = arrayOf(Permission.MESSAGE_READ, Permission.MESSAGE_WRITE, Permission.MESSAGE_HISTORY, Permission.MESSAGE_ADD_REACTION,
@@ -44,6 +45,7 @@ object VirtusBot {
     val prefix = Info.PREFIX
     @JvmStatic
     var commands = ArrayList<Command>()
+    var commandCategories = ArrayList<String>()
     lateinit var storageHandler: StorageHandler
     @JvmStatic
     lateinit var blackList: BlackList
@@ -135,6 +137,9 @@ object VirtusBot {
                 .setGuildSettingsManager(guildSettingsManager)
         cb.useHelpBuilder(false)
         commands.forEach(Consumer { command: Command? -> cb.addCommand(command) })
+
+        commands.forEach(Consumer { command: Command? -> if(!commandCategories.contains(command?.category?.name)) command?.category?.name?.let { commandCategories.add(it) } })
+        commandCategories.add("general")
 
 
         //cb.useHelpBuilder(false);

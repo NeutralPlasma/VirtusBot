@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import java.util.*
 
-class AbstractReactionUtil(user: User, private val function: (ChatConfirmEvent) -> Unit, jda: JDA, private val emoji: String, private val message: String) : ListenerAdapter() {
+class AbstractReactionUtil(user: User, private val function: (ChatConfirmEvent) -> Unit, jda: JDA, private val emoji: String, private val message: String, private val repeat: Boolean) : ListenerAdapter() {
 
     private var listener: ListenerAdapter? = null
     private fun initializeListeners(jda: JDA) {
@@ -15,22 +15,24 @@ class AbstractReactionUtil(user: User, private val function: (ChatConfirmEvent) 
                 val user = event.user ?: return
                 if (!isRegistered(user)) return
                 if (event.messageId != message) return
-                val emote = event.reactionEmote
-                if (!emote.emoji.equals(emoji, ignoreCase = true)) return
+                if (!event.reactionEmote.asReactionCode.equals(emoji, ignoreCase = true)) return
+                if(!repeat) unregister(user)
 
-                unregister(user)
-
-                val chatConfirmEvent = ChatConfirmEvent(user, emote.emoji)
+                val chatConfirmEvent = ChatConfirmEvent(user)
                 function(chatConfirmEvent)
 
 
-                jda.removeEventListener(listener)
+                if(!repeat) jda.removeEventListener(listener)
             }
         }
         jda.addEventListener(listener)
     }
 
-    class ChatConfirmEvent(val user: User, private val emote: String)
+    fun dispose(jda: JDA){
+        jda.removeEventListener(listener)
+    }
+
+    class ChatConfirmEvent(val user: User)
 
     companion object {
         private val registered: MutableList<String> = ArrayList()

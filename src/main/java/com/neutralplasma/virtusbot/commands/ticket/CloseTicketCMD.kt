@@ -29,7 +29,7 @@ class CloseTicketCMD(private val ticketStorage: TicketStorage) : TicketCommand()
         val reactionUtil = AbstractReactionUtil(user!!, {
             ticketStorage.deleteTicket(info.userID, info.channelID)
             deleteChannel(channel)
-        }, message.jda, "✔", message.id)
+        }, message.jda, "✔", message.id, false)
 
     }
 
