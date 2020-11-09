@@ -182,6 +182,22 @@ class PlayerLeveling(private val storage: StorageHandler, private val playerSett
         calcIfLevelUp(user, guild, data)
     }
 
+    /**
+     *
+     * @param user User of discord.
+     * @param guild Guild in which you want to add xp.
+     */
+
+    fun addXp(user: User, guild: Guild, amount: Long) {
+        var data = getUser(user, guild)
+        if (data == null) {
+            data = PlayerData(user.idLong, guild.idLong, 0, 0)
+        }
+        data.xp = data.xp + amount
+        updateUser(data)
+        calcIfLevelUp(user, guild, data)
+    }
+
 
     /**
      *

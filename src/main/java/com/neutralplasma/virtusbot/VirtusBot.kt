@@ -12,6 +12,7 @@ import com.neutralplasma.virtusbot.commands.audio.*
 import com.neutralplasma.virtusbot.commands.general.HelpCommand
 import com.neutralplasma.virtusbot.commands.general.SuggestCmd
 import com.neutralplasma.virtusbot.commands.general.TestCommand
+import com.neutralplasma.virtusbot.commands.invite.InviteCommand
 import com.neutralplasma.virtusbot.commands.owner.BlackListCommand
 import com.neutralplasma.virtusbot.commands.owner.BotPowerCommand
 import com.neutralplasma.virtusbot.commands.player.LevelCommand
@@ -108,6 +109,7 @@ object VirtusBot {
         commands.add(SayCommand())
         commands.add(MultiplierCommand(playerLeveling))
         commands.add(NewAdminCommand())
+        commands.add(PlayerManageCommand(playerLeveling))
 
         // music
         commands.add(PlayCommand(audioManager, youtubeSearch))
@@ -124,6 +126,9 @@ object VirtusBot {
         // owner
         commands.add(BlackListCommand())
         commands.add(BotPowerCommand(playerLeveling, playerSettingsHandler))
+
+        // invite
+        commands.add(InviteCommand())
 
         // player
         commands.add(LevelCommand(playerLeveling))
