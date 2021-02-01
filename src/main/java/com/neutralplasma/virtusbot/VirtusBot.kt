@@ -172,7 +172,7 @@ object VirtusBot {
 
         val dataUpdater = DataUpdater(bot.jda)
         dataUpdater.addServer(ServerInfo(
-                "195.201.133.129",
+                "",
                 "30121",
                 64,
                 mutableListOf(),
