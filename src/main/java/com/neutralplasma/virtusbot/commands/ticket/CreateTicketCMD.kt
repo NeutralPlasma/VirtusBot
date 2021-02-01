@@ -130,7 +130,7 @@ class CreateTicketCMD(private val ticketStorage: TicketStorage,private val bot: 
         val channel = newchannel.complete() as TextChannel
         val id = channel.id
         val userid = user.id
-        ticketStorage.writeSettings(userid, id)
+        ticketStorage.writeSettings(userid, id, 0)
         return channel
     }
 

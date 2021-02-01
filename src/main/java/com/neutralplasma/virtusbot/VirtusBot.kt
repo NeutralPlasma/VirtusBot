@@ -20,6 +20,8 @@ import com.neutralplasma.virtusbot.commands.player.PlayerSettingsCommand
 import com.neutralplasma.virtusbot.commands.ticket.CloseTicketCMD
 import com.neutralplasma.virtusbot.commands.ticket.CreateTicketCMD
 import com.neutralplasma.virtusbot.event.EventHandler
+import com.neutralplasma.virtusbot.fivem.DataUpdater
+import com.neutralplasma.virtusbot.fivem.ServerInfo
 import com.neutralplasma.virtusbot.handlers.BlackList
 import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler
@@ -101,7 +103,7 @@ object VirtusBot {
         // ticket
         commands.add(createTicketCMD)
         commands.add(CreateTicketChannelCmd(newSettingsManager))
-        commands.add(CloseTicketCMD(ticketStorage))
+        commands.add(CloseTicketCMD(ticketStorage, newSettingsManager))
 
         // admin
         commands.add(ServerDataCmd(newSettingsManager, playerLeveling, storageHandler, playerSettingsHandler))
@@ -147,6 +149,8 @@ object VirtusBot {
         commandCategories.add("general")
 
 
+
+
         //cb.useHelpBuilder(false);
         cb.setStatus(OnlineStatus.ONLINE)
         val client = cb.build()
@@ -165,6 +169,19 @@ object VirtusBot {
         } catch (error: IllegalArgumentException) {
             error.printStackTrace()
         }
+
+        val dataUpdater = DataUpdater(bot.jda)
+        dataUpdater.addServer(ServerInfo(
+                "195.201.133.129",
+                "30121",
+                64,
+                mutableListOf(),
+                773841559543480320,
+                773849265016799243,
+                0,
+                "kpvpdr"
+        ))
+        dataUpdater.start()
     }
 
 }

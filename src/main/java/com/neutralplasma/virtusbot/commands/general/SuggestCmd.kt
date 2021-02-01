@@ -17,7 +17,7 @@ class SuggestCmd(private val newSettingsManager: NewSettingsManager) : Command()
     override fun execute(event: CommandEvent) {
         val arg = event.args
         val guild = event.guild
-        event.message.delete()
+        event.message.delete().queue()
         val suggestChannel = newSettingsManager.getTextChannel(guild, SettingsList.SUGGEST_CHANNEL)
         if (suggestChannel != null) {
             createSuggestion(suggestChannel, event.author, arg)
