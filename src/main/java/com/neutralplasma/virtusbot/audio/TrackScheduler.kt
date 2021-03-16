@@ -103,7 +103,7 @@ class TrackScheduler(private val player: AudioPlayer) : AudioEventAdapter() {
         eb.addField("Duration:", formatTiming(track.duration, 3600000L), true)
         eb.addField("Link:", info.uri, false)
         eb.setThumbnail(imgurl)
-        eb.setFooter("VirtusDevelops 2015-2020")
+        eb.setFooter("VirtusDevelops 2015-2021")
         eb.setColor(Color.magenta.brighter())
         channel!!.sendMessage(eb.build()).queue { m: Message -> m.delete().queueAfter(10, TimeUnit.SECONDS) }
         // END

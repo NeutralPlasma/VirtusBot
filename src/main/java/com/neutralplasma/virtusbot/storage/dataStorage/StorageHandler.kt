@@ -21,6 +21,10 @@ class StorageHandler {
         storage!!.closeConnection()
     }
 
+    fun execute(code: String){
+        storage!!.execute(code)
+    }
+
     init {
         storage = if (Info.USE_MYSQL) {
             MySQL()

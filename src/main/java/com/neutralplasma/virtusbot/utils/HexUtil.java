@@ -18,12 +18,6 @@ public final class HexUtil {
             Pattern.compile("#([A-Fa-f0-9]){3}")    // #FFF
     );
 
-    private HexUtil() {
-
-    }
-
-
-
 
     private static Color parseHex(String message) {
         String parsed = message;
@@ -40,7 +34,11 @@ public final class HexUtil {
 
 
     public static Color translateHex(String hex) {
-        return Color.decode(hex);
+        try {
+            return Color.decode(hex);
+        }catch (Exception error){
+            return null;
+        }
     }
 
 
@@ -54,9 +52,6 @@ public final class HexUtil {
             return hex;
         }
     }
-
-
-
 
 
     /**
@@ -163,13 +158,9 @@ public final class HexUtil {
             this.hue += this.hueStep;
             return color;
         }
-
-
         public void shift(int shift){
             this.hue += hueStep * shift;
         }
-
-
     }
 
 }

@@ -54,7 +54,7 @@ class SayCommand : AdminCommand() {
                 commandEvent.reply("Please send color in next format: #RRGGBB")
                 val abstractChatUtil = AbstractChatUtil(commandEvent.author, { chatInfo: AbstractChatUtil.ChatConfirmEvent ->
                     //val color = chatInfo.message.split(":".toRegex()).toTypedArray()
-                    val color = HexUtil.translateHex(chatInfo.message);
+                    val color = HexUtil.translateHex(chatInfo.message)
                     if(color != null){
                         finalMessage.setColor(color)
                         savedMessages.put(member.id, finalMessage)

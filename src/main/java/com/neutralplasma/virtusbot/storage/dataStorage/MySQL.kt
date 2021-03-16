@@ -28,6 +28,12 @@ class MySQL : Storage() {
         hikari!!.close()
     }
 
+    @Throws(SQLException::class)
+    override fun execute(code: String) {
+        hikari!!.connection.use { connection ->
+            connection.prepareStatement(code).use { preparedStatement -> preparedStatement.execute() }
+        }
+    }
     /**
      * Create table in database.
      *

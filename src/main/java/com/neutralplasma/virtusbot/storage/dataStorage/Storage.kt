@@ -11,6 +11,9 @@ abstract class Storage {
     @Throws(SQLException::class)
     open fun createTable(tableName: String, format: String) {
     }
+    @Throws(SQLException::class)
+    open fun execute(code: String) {
+    }
 
     @get:Throws(SQLException::class)
     open val connection: Connection?

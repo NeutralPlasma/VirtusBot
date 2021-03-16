@@ -2,9 +2,10 @@ package com.neutralplasma.virtusbot.event
 
 import com.neutralplasma.virtusbot.commands.ticket.CreateTicketCMD
 import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling
+import com.neutralplasma.virtusbot.handlers.timedSending.TimedSender
+import com.neutralplasma.virtusbot.roleAutomation.ReactionRoleHandler
 import com.neutralplasma.virtusbot.settings.NewSettingsManager
 import com.neutralplasma.virtusbot.settings.SettingsList
-import com.neutralplasma.virtusbot.utils.TextUtil
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.ChannelType
@@ -12,16 +13,20 @@ import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.GenericEvent
-import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
+import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent
 import net.dv8tion.jda.api.hooks.EventListener
 import java.awt.Color
 
 class EventHandler(private val newSettingsManager: NewSettingsManager, private val createTicketCMD: CreateTicketCMD,
-                   private val playerLeveling: PlayerLeveling) : EventListener {
+                   private val playerLeveling: PlayerLeveling, private val reactionRoleHandler: ReactionRoleHandler,
+                    private val timed: TimedSender) : EventListener {
     private var setuped = false
+
+    private val blackListed = mutableListOf("804035274409377863")
+
     override fun onEvent(gevent: GenericEvent) {
         // ADD REACTION TO MESSAGE EVENT
         if (gevent is MessageReactionAddEvent) {
@@ -31,28 +36,57 @@ class EventHandler(private val newSettingsManager: NewSettingsManager, private v
             }
             val messageReaction = event.reaction
             val emote = messageReaction.reactionEmote
+
+            // Role handler
+//            TextUtil.sendMessage(emote.toString())
+            if(event.member != null)
+                reactionRoleHandler.addRoles(event.guild, emote, event.messageId, event.member)
+
+//            if(event.messageId == "807255601079910420"){
+//                event.retrieveMessage().queue {
+//                    it.addReaction(emote.emoji).queue()
+//                }
+//            }
+
+
             //TextUtil.sendMessage(emote.getName());
             if (emote.name.equals("\uD83D\uDCAC", ignoreCase = true)) {
                 if (event.channel === newSettingsManager.getTextChannel(event.guild, SettingsList.TICKET_CHANNEL)) {
                     messageReaction.removeReaction(event.user!!).queue()
-                    createTicketCMD.createTicket(event.member!!, event.guild)
+                    createTicketCMD.createTicket(event.guild, event.member!!, event.textChannel)
                 }
             }
             // MESSAGE REACTION EVENT END
-        } else if (gevent is MessageReceivedEvent) {
-            val event = gevent
-            val member = event.member
-            val message = event.message
-            if (event.isFromType(ChannelType.TEXT)) {
+        } else if (gevent is MessageReceivedEvent && !blackListed.contains(gevent.guild.id)) {
+            val member = gevent.member
+            val message = gevent.message
+            if (gevent.isFromType(ChannelType.TEXT)) {
                 if (message.contentRaw.contains("https://discord.gg/") && !member!!.hasPermission(Permission.MANAGE_SERVER)) {
-                    sendServerLog(event.guild, message, member)
+                    sendServerLog(gevent.guild, message, member)
                     message.delete().queue()
                 }
-                if (event.message.isWebhookMessage || event.member!!.user.isBot) {
+                if (gevent.message.isWebhookMessage || gevent.member!!.user.isBot) {
                     return
                 }
-                playerLeveling.addXp(event.member!!.user, event.guild)
+                if(newSettingsManager.getTextChannel(gevent.guild, SettingsList.TIMED_MESSAGES_CHANNEL)?.idLong == gevent.channel.idLong){
+                    val message = gevent.message
+                    timed.addTimedMessage(gevent.guild, message.contentRaw, message.attachments[0].url)
+                    gevent.textChannel.sendMessage("Added data to queue..").queue()
+                }
+
+                playerLeveling.addXp(gevent.member!!.user, gevent.guild)
             }
+        } else if (gevent is MessageReceivedEvent) {
+            // Recievevjawnfjoaw event
+
+            if(newSettingsManager.getTextChannel(gevent.guild, SettingsList.TIMED_MESSAGES_CHANNEL)?.idLong == gevent.channel.idLong){
+                val message = gevent.message
+                timed.addTimedMessage(gevent.guild, message.contentRaw, message.attachments[0].url)
+                gevent.textChannel.sendMessage("Added data to queue..").queue()
+            }
+
+
+
         } else if (gevent is GuildMemberJoinEvent){ // Member join guild
             val member = gevent.member
             val guild = gevent.guild
@@ -65,6 +99,16 @@ class EventHandler(private val newSettingsManager: NewSettingsManager, private v
                         "Preden začneš igrati si preberi pravila!", false)
                 channel.sendMessage(eb.build()).queue()
             }
+        } else if (gevent is MessageReactionRemoveEvent){
+            if (gevent.user!!.isBot) {
+                return
+            }
+            val messageReaction = gevent.reaction
+            val emote = messageReaction.reactionEmote
+            // Role handler
+//            TextUtil.sendMessage(emote.toString())
+            if(gevent.member != null)
+                reactionRoleHandler.removeRoles(gevent.guild, emote, gevent.messageId, gevent.member)
         }
     }
 

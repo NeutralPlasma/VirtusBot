@@ -13,9 +13,6 @@ import java.util.concurrent.TimeUnit
 import kotlin.Exception
 import kotlin.concurrent.scheduleAtFixedRate
 
-
-
-
 class DataUpdater(val bot: JDA) {
     val servers = mutableListOf<ServerInfo>()
     var timer: TimerTask? = null
@@ -29,11 +26,9 @@ class DataUpdater(val bot: JDA) {
             }catch (ignored: Exception) {}
         }
     }
-
     fun end(){
         timer?.cancel()
     }
-
     fun addServer(serverInfo: ServerInfo){
         servers.add(serverInfo)
     }
@@ -41,7 +36,6 @@ class DataUpdater(val bot: JDA) {
     fun update(info: ServerInfo){
         val url = URL("http://${info.ip}:${info.port}/players.json")
         val urlConnection = url.openConnection() as HttpURLConnection
-
         try {
             val text = urlConnection.inputStream.bufferedReader().readText()
             val data = JSONArray(text)
@@ -50,15 +44,11 @@ class DataUpdater(val bot: JDA) {
                 player as JSONObject
                 info.players.add(player.getString("name"))
             }
-
             if(info.messageID != 0L){
                 val embed = EmbedBuilder()
                 embed.addField("Server IP: ", info.connectIP , false)
-
                 embed.addField("Kako se pridružite strežniku?", "Strežniku se pridružite tako, da vnesete `connect ${info.connectIP}` v F8", false)
-
                 embed.addField("Igralci (${info.players.size}/${info.maxPlayers}): ", info.getPlayers(), false)
-
                 embed.setFooter("Posodobljeno: " + LocalTime.now())
                 embed.setColor(Color.decode("#ffa500"))
                 val guild = bot.getGuildById(info.guild)
@@ -71,8 +61,6 @@ class DataUpdater(val bot: JDA) {
                         channel.deleteMessagesByIds(listOf(info.messageID.toString())).queue()
                         info.messageID = 0L
                     }
-
-
                 }
             }else{
                 val embed = EmbedBuilder()

@@ -9,6 +9,7 @@ import com.neutralplasma.virtusbot.audio.AudioManager
 import com.neutralplasma.virtusbot.audio.search.YoutubeSearch
 import com.neutralplasma.virtusbot.commands.admin.*
 import com.neutralplasma.virtusbot.commands.audio.*
+import com.neutralplasma.virtusbot.commands.general.EmoteCommand
 import com.neutralplasma.virtusbot.commands.general.HelpCommand
 import com.neutralplasma.virtusbot.commands.general.SuggestCmd
 import com.neutralplasma.virtusbot.commands.general.TestCommand
@@ -19,12 +20,16 @@ import com.neutralplasma.virtusbot.commands.player.LevelCommand
 import com.neutralplasma.virtusbot.commands.player.PlayerSettingsCommand
 import com.neutralplasma.virtusbot.commands.ticket.CloseTicketCMD
 import com.neutralplasma.virtusbot.commands.ticket.CreateTicketCMD
+import com.neutralplasma.virtusbot.commands.ticket.DeleteTicketCMD
+import com.neutralplasma.virtusbot.commands.timedcommands.MainTimedCommand
 import com.neutralplasma.virtusbot.event.EventHandler
 import com.neutralplasma.virtusbot.fivem.DataUpdater
 import com.neutralplasma.virtusbot.fivem.ServerInfo
 import com.neutralplasma.virtusbot.handlers.BlackList
 import com.neutralplasma.virtusbot.handlers.playerLeveling.PlayerLeveling
 import com.neutralplasma.virtusbot.handlers.playerSettings.PlayerSettingsHandler
+import com.neutralplasma.virtusbot.handlers.timedSending.TimedSender
+import com.neutralplasma.virtusbot.roleAutomation.ReactionRoleHandler
 import com.neutralplasma.virtusbot.settings.NewSettingsManager
 import com.neutralplasma.virtusbot.storage.config.Info
 import com.neutralplasma.virtusbot.storage.dataStorage.StorageHandler
@@ -78,10 +83,13 @@ object VirtusBot {
         // MUSIC
         val youtubeSearch = YoutubeSearch()
 
+        // sending shit
+        val timedSender = TimedSender(storageHandler, bot)
+
         // PRECREATE COMMANDS
         val createTicketCMD = CreateTicketCMD(ticketStorage, bot, newSettingsManager)
         val eventHandler = EventHandler(newSettingsManager, createTicketCMD,
-                playerLeveling)
+                playerLeveling, ReactionRoleHandler(), timedSender)
 
 
         // ABOUT COMMAND -- DD --
@@ -92,18 +100,19 @@ object VirtusBot {
         aboutCommand.setReplacementCharacter("\uD83C\uDFB6")
         // SETTINGS COMING SQL BASED ONE
         val guildSettingsManager: GuildSettingsManager<*> = GuildSettingsManager<Any?> { guild -> newSettingsManager.getSettings(guild) }
-        // CLIENT BUILDER WITH COMMANDS
 
         // COMMANDS
         commands.add(aboutCommand)
         commands.add(SuggestCmd(newSettingsManager ))
         commands.add(TestCommand(newSettingsManager ))
         commands.add(HelpCommand(newSettingsManager, bot))
+        commands.add(EmoteCommand())
 
         // ticket
         commands.add(createTicketCMD)
         commands.add(CreateTicketChannelCmd(newSettingsManager))
         commands.add(CloseTicketCMD(ticketStorage, newSettingsManager))
+        commands.add(DeleteTicketCMD(ticketStorage, newSettingsManager))
 
         // admin
         commands.add(ServerDataCmd(newSettingsManager, playerLeveling, storageHandler, playerSettingsHandler))
@@ -112,6 +121,7 @@ object VirtusBot {
         commands.add(MultiplierCommand(playerLeveling))
         commands.add(NewAdminCommand())
         commands.add(PlayerManageCommand(playerLeveling))
+        commands.add(ClearCommand())
 
         // music
         commands.add(PlayCommand(audioManager, youtubeSearch))
@@ -131,6 +141,9 @@ object VirtusBot {
 
         // invite
         commands.add(InviteCommand())
+
+        // Timed stuff
+        commands.add(MainTimedCommand(timedSender))
 
         // player
         commands.add(LevelCommand(playerLeveling))
@@ -169,18 +182,9 @@ object VirtusBot {
         } catch (error: IllegalArgumentException) {
             error.printStackTrace()
         }
-
+        timedSender.setup()
         val dataUpdater = DataUpdater(bot.jda)
-        dataUpdater.addServer(ServerInfo(
-                "",
-                "30121",
-                64,
-                mutableListOf(),
-                773841559543480320,
-                773849265016799243,
-                0,
-                "kpvpdr"
-        ))
+        
         dataUpdater.start()
     }
 

@@ -6,6 +6,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
@@ -88,17 +89,19 @@ class AudioManager : ListenerAdapter() {
     fun loadAndPlay(channel: TextChannel, trackUrl: String, voiceChannel: VoiceChannel?) {
         val musicManager = getGuildAudioPlayer(channel.guild)
         musicManager.scheduler.setChannel(channel)
+        playerManager.source(YoutubeAudioSourceManager::class.java).setPlaylistPageCount(10)
+
         playerManager.loadItemOrdered(musicManager, trackUrl, object : AudioLoadResultHandler {
+
             override fun trackLoaded(track: AudioTrack) {
                 val eb = EmbedBuilder()
                 val info = track.info
                 eb.addField("Added to queue: ", "**" + info.title + "** - " + formatTiming(track.duration), false)
                 eb.setColor(Color.magenta.brighter())
-                eb.setFooter("VirtusDevelops 2015-2020")
+                eb.setFooter("VirtusDevelops 2015-2021")
                 channel.sendMessage(eb.build()).queue { m: Message -> m.delete().queueAfter(15, TimeUnit.SECONDS) }
                 play(channel.guild, musicManager, track, voiceChannel)
             }
-
             override fun playlistLoaded(playlist: AudioPlaylist) {
                 val eb = EmbedBuilder()
                 val maxsize = 200
@@ -122,23 +125,19 @@ class AudioManager : ListenerAdapter() {
                 eb.setFooter("VirtusDevelops 2015-2020")
                 eb.setColor(Color.magenta.brighter())
                 channel.sendMessage(eb.build()).queue { m: Message -> m.delete().queueAfter(30, TimeUnit.SECONDS) }
-
-                //channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")").queue();
-
-                //play(channel.getGuild(), musicManager, firstTrack, voiceChannel);
             }
 
             override fun noMatches() {
                 val eb = EmbedBuilder()
                 eb.addField("Error", "Could not find any song by that name. `$trackUrl`", false)
-                eb.setFooter("VirtusDevelops 2015-2020")
+                eb.setFooter("VirtusDevelops 2015-2021")
                 channel.sendMessage(eb.build()).queue { m: Message -> m.delete().queueAfter(15, TimeUnit.SECONDS) }
             }
 
             override fun loadFailed(exception: FriendlyException) {
                 val eb = EmbedBuilder()
                 eb.addField("Error", "Could not play this song.", false)
-                eb.setFooter("VirtusDevelops 2015-2020")
+                eb.setFooter("VirtusDevelops 2015-2021")
                 channel.sendMessage(eb.build()).queue { m: Message -> m.delete().queueAfter(15, TimeUnit.SECONDS) }
             }
         })
